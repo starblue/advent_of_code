@@ -1,0 +1,36 @@
+use std::io;
+
+fn main() {
+    let mut line = String::new();
+    io::stdin().read_line(&mut line).expect("I/O error");
+
+    let mut min_len = std::usize::MAX;
+    for b in b'A'..=b'Z' {
+        let mut data_left = line
+            .trim()
+            .chars()
+            .filter(move |c| c.to_ascii_uppercase() != b as char)
+            .collect::<Vec<_>>();
+        let mut data_right = Vec::new();
+        while !data_left.is_empty() {
+            if data_right.is_empty() {
+                let c = data_left.pop().unwrap();
+                data_right.push(c);
+            } else {
+                let c1 = data_left.pop().unwrap();
+                let c2 = data_right.pop().unwrap();
+                if c1.to_ascii_lowercase() == c2.to_ascii_lowercase()
+                    && c1.is_lowercase() != c2.is_lowercase()
+                {
+                    // reacted and gone
+                } else {
+                    data_right.push(c2);
+                    data_right.push(c1);
+                }
+            }
+        }
+        min_len = min_len.min(data_right.len());
+    }
+
+    println!("{}", min_len);
+}
