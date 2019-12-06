@@ -1,0 +1,106 @@
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::io;
+use std::io::Read;
+use std::str::FromStr;
+
+use nom::*;
+
+use twodim::p2d;
+use twodim::Point2d;
+use twodim::Vec2d;
+
+#[derive(Clone, Copy, Debug)]
+struct Link {
+    dir: usize,
+    steps: usize,
+}
+
+named!(
+    uint<&str, usize>,
+    map_res!(digit, FromStr::from_str)
+);
+
+named!(dir<&str, usize>,
+    alt!(
+        value!(0, char!('R')) |
+        value!(1, char!('U')) |
+        value!(2, char!('L')) |
+        value!(3, char!('D'))
+    )
+);
+
+named!(link<&str, Link>,
+    do_parse!(
+        dir: dir >>
+        steps: uint >> (Link { dir, steps })
+    )
+);
+
+named!(
+    path<&str, Vec<Link>>,
+    separated_list!(tag!(","), link)
+);
+
+named!(
+    input<&str, (Vec<Link>,Vec<Link>)>,
+    do_parse!(
+        p0: path >>
+        line_ending >>
+        p1: path >> ((p0, p1))
+    )
+);
+
+fn positions(path: Vec<Link>) -> HashMap<Point2d, i64> {
+    let mut ps = HashMap::new();
+    let mut p = p2d(0, 0);
+    let mut d = 0;
+    for Link { dir, steps } in path {
+        let dir = Vec2d::directions()[dir];
+        for _ in 0..steps {
+            p = p + dir;
+            d += 1;
+            ps.insert(p, d);
+        }
+    }
+    ps
+}
+
+fn main() {
+    let mut input_data = String::new();
+    io::stdin()
+        .read_to_string(&mut input_data)
+        .expect("I/O error");
+
+    // make nom happy
+    input_data.push_str("\n");
+
+    // parse input
+    let result = input(&input_data);
+    //println!("{:?}", result);
+
+    let (p0, p1) = result.unwrap().1;
+
+    let pm0 = positions(p0);
+    let pm1 = positions(p1);
+    let ps0 = pm0.keys().collect::<HashSet<_>>();
+    let ps1 = pm1.keys().collect::<HashSet<_>>();
+
+    let mut min_dist_a = std::i64::MAX;
+    let mut min_dist_b = std::i64::MAX;
+    for p in ps0.intersection(&ps1) {
+        let dist_a = p.x.abs() + p.y.abs();
+        if dist_a < min_dist_a {
+            min_dist_a = dist_a;
+        }
+        let dist_b = pm0[p] + pm1[p];
+        if dist_b < min_dist_b {
+            min_dist_b = dist_b;
+        }
+    }
+
+    let result_a = min_dist_a;
+    let result_b = min_dist_b;
+    println!("a: {}", result_a);
+    println!("b: {}", result_b);
+}
