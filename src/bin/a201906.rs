@@ -88,7 +88,7 @@ fn main() {
         .collect::<Vec<_>>();
     let you_len = you_path.len() - common_prefix.len();
     let san_len = san_path.len() - common_prefix.len();
-    
+
     let result_a = count;
     let result_b = you_len + san_len;
     println!("a: {}", result_a);
