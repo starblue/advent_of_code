@@ -58,7 +58,7 @@ fn positions(path: Vec<Link>) -> HashMap<Point2d, i64> {
     for Link { dir, steps } in path {
         let dir = Vec2d::directions()[dir];
         for _ in 0..steps {
-            p = p + dir;
+            p += dir;
             d += 1;
             ps.insert(p, d);
         }
