@@ -144,11 +144,11 @@ named!(op<&str, Op>,
 named!(instr<&str, Instr>,
     do_parse!(
         op: op >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         a: int64 >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         b: int64 >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         c: int64 >>
             (Instr{op, a, b, c})
     )

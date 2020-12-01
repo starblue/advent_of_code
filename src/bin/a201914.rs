@@ -147,7 +147,7 @@ fn main() {
         ore_est = required_ore(&map, fuel_est);
         fuel_est = (ore * fuel_est) / ore_est;
     }
-        
+
     let result_a = req1;
     let result_b = fuel_est;
     println!("a: {}", result_a);

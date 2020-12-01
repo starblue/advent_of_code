@@ -25,11 +25,11 @@ named!(
     line<&str, Vec3d>,
     do_parse!(
         tag!("<x=") >>
-        x: int32 >> 
+        x: int32 >>
         tag!(", y=") >>
-        y: int32 >> 
+        y: int32 >>
         tag!(", z=") >>
-        z: int32 >> 
+        z: int32 >>
         tag!(">") >>
         line_ending >> (Vec3d{ x, y, z })
     )

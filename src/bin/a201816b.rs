@@ -124,11 +124,11 @@ named!(regs<&str, Regs>,
 named!(instr<&str, Instr>,
     do_parse!(
         opc: int64 >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         a: int64 >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         b: int64 >>
-        tag_s!(" ") >>    
+        tag_s!(" ") >>
         c: int64 >>
             (Instr(vec![opc, a, b, c]))
     )
