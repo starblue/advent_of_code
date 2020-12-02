@@ -74,10 +74,10 @@ impl Direction {
             Direction::S => v2d(0, 1),
         }
     }
-    fn to_track(&self) -> Option<Track> {
+    fn to_track(&self) -> Track {
         match self {
-            Direction::E | Direction::W => Some(Track::PathEW),
-            Direction::N | Direction::S => Some(Track::PathNS),
+            Direction::E | Direction::W => Track::PathEW,
+            Direction::N | Direction::S => Track::PathNS,
         }
     }
     fn to_char(&self) -> char {
@@ -199,14 +199,6 @@ impl fmt::Display for State {
     }
 }
 
-named!(direction<&str, Direction>,
-    alt!(
-        value!(Direction::E, char!('>')) |
-        value!(Direction::N, char!('^')) |
-        value!(Direction::W, char!('<')) |
-        value!(Direction::S, char!('v'))
-    )
-);
 named!(track<&str, Track>,
     alt!(
         value!(Track::Empty, char!(' ')) |
@@ -218,16 +210,26 @@ named!(track<&str, Track>,
     )
 );
 
+named!(cart<&str, Cart>,
+    do_parse!(
+        dir: alt!(
+            value!(Direction::E, char!('>')) |
+            value!(Direction::N, char!('^')) |
+            value!(Direction::W, char!('<')) |
+            value!(Direction::S, char!('v'))
+        ) >> (Cart::new(dir))
+    )
+);
+
 named!(square<&str, Square>,
     alt!(
         do_parse!(
             track: track >> (Square { track, cart: None } )
         ) |
         do_parse!(
-            dir: direction >> ({
-                let track = dir.to_track().unwrap();
-                let cart = Some(Cart::new(dir));
-                Square { track, cart }})
+            cart: cart >> ({
+                let track = cart.dir.to_track();
+                Square { track, cart: Some(cart) }})
         )
     )
 );
