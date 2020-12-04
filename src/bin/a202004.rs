@@ -3,7 +3,22 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::digit;
+use nom::do_parse;
+use nom::line_ending;
+use nom::many0;
+use nom::many1;
+use nom::many_m_n;
+use nom::map;
+use nom::map_res;
+use nom::named;
+use nom::none_of;
+use nom::one_of;
+use nom::preceded;
+use nom::recognize;
+use nom::tag;
+use nom::value;
 
 #[derive(Clone, Copy, Debug)]
 enum Unit {
@@ -21,7 +36,11 @@ named!(int64<&str, i64>,
 );
 
 named!(year<&str, i64>,
-     map_res!(recognize!(many_m_n!(4, 4, one_of!("0123456789"))), FromStr::from_str)
+    map_res!(
+        recognize!(
+            many_m_n!(4, 4, one_of!("0123456789"))),
+        FromStr::from_str
+    )
 );
 
 named!(unit<&str, Unit>,
@@ -48,6 +67,7 @@ named!(hcl<&str, String>,
         FromStr::from_str
     )
 );
+
 named!(ecl<&str, String>,
     map_res!(
         recognize!(
@@ -65,7 +85,12 @@ named!(ecl<&str, String>,
     )
 );
 named!(pid<&str, String>,
-    map_res!(recognize!(many_m_n!(9, 9, one_of!("0123456789"))), FromStr::from_str)
+    map_res!(
+        recognize!(
+            many_m_n!(9, 9, one_of!("0123456789"))
+        ),
+        FromStr::from_str
+    )
 );
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -84,30 +109,20 @@ impl Field {
         match self {
             Field::BYR => {
                 let result = year(data);
-                result.map_or(false, |s| {
-                    let y = s.1;
-                    s.0.is_empty() && 1920 <= y && y <= 2002
-                })
+                result.map_or(false, |(r, y)| r.is_empty() && 1920 <= y && y <= 2002)
             }
             Field::IYR => {
                 let result = year(data);
-                result.map_or(false, |s| {
-                    let y = s.1;
-                    s.0.is_empty() && 2010 <= y && y <= 2020
-                })
+                result.map_or(false, |(r, y)| r.is_empty() && 2010 <= y && y <= 2020)
             }
             Field::EYR => {
                 let result = year(data);
-                result.map_or(false, |s| {
-                    let y = s.1;
-                    s.0.is_empty() && 2020 <= y && y <= 2030
-                })
+                result.map_or(false, |(r, y)| r.is_empty() && 2020 <= y && y <= 2030)
             }
             Field::HGT => {
                 let result = height(data);
-                result.map_or(false, |s| {
-                    let h = s.1;
-                    s.0.is_empty()
+                result.map_or(false, |(r, h)| {
+                    r.is_empty()
                         && match h.unit {
                             Unit::CM => 150 <= h.value && h.value <= 193,
                             Unit::INCH => 59 <= h.value && h.value <= 76,
@@ -116,15 +131,15 @@ impl Field {
             }
             Field::HCL => {
                 let result = hcl(data);
-                result.map_or(false, |s| s.0.is_empty())
+                result.map_or(false, |(r, _)| r.is_empty())
             }
             Field::ECL => {
                 let result = ecl(data);
-                result.map_or(false, |s| s.0.is_empty())
+                result.map_or(false, |(r, _)| r.is_empty())
             }
             Field::PID => {
                 let result = pid(data);
-                result.map_or(false, |s| s.0.is_empty())
+                result.map_or(false, |(r, _)| r.is_empty())
             }
             Field::CID => true,
         }

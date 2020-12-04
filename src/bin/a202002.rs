@@ -4,7 +4,17 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::anychar;
+use nom::digit;
+use nom::do_parse;
+use nom::line_ending;
+use nom::many1;
+use nom::map;
+use nom::map_res;
+use nom::named;
+use nom::not_line_ending;
+use nom::recognize;
+use nom::tag;
 
 #[derive(Clone, Debug)]
 struct Record {
