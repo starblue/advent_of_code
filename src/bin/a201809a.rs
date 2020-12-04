@@ -2,10 +2,8 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::call;
 use nom::digit;
 use nom::do_parse;
-use nom::error_position;
 use nom::map_res;
 use nom::named;
 use nom::tag;

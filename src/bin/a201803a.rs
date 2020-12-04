@@ -2,18 +2,13 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::call;
 use nom::char;
 use nom::digit;
 use nom::do_parse;
-use nom::error_position;
 use nom::line_ending;
 use nom::map_res;
 use nom::named;
-use nom::sep;
 use nom::separated_pair;
-use nom::tuple_parser;
-use nom::wrap_sep;
 use nom::ws;
 
 #[derive(Clone, Copy, Debug)]

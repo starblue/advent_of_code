@@ -3,10 +3,8 @@ use std::fmt;
 use std::io;
 
 use nom::alt;
-use nom::call;
 use nom::char;
 use nom::do_parse;
-use nom::error_position;
 use nom::many0;
 use nom::many_m_n;
 use nom::named;

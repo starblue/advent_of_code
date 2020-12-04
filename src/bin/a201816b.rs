@@ -5,19 +5,15 @@ use std::iter::repeat;
 use std::iter::repeat_with;
 use std::str::FromStr;
 
-use nom::call;
 use nom::char;
 use nom::dbg;
 use nom::digit;
 use nom::do_parse;
-use nom::error_position;
 use nom::line_ending;
 use nom::many1;
 use nom::map_res;
 use nom::named;
-use nom::sep;
 use nom::tag;
-use nom::wrap_sep;
 use nom::ws;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

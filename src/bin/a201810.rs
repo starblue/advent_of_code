@@ -3,20 +3,15 @@ use std::i64;
 use std::io;
 use std::str::FromStr;
 
-use nom::call;
 use nom::char;
 use nom::digit;
 use nom::do_parse;
-use nom::error_position;
 use nom::map_res;
 use nom::named;
 use nom::opt;
 use nom::recognize;
-use nom::sep;
 use nom::tag;
 use nom::tuple;
-use nom::tuple_parser;
-use nom::wrap_sep;
 use nom::ws;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
