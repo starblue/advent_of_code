@@ -115,18 +115,18 @@ named!(
 
 named!(attack_type<&str, AttackType>,
     alt!(
-        value!(AttackType::Bludgeoning, tag_s!("bludgeoning")) |
-        value!(AttackType::Cold, tag_s!("cold")) |
-        value!(AttackType::Fire, tag_s!("fire")) |
-        value!(AttackType::Radiation, tag_s!("radiation")) |
-        value!(AttackType::Slashing, tag_s!("slashing"))
+        value!(AttackType::Bludgeoning, tag!("bludgeoning")) |
+        value!(AttackType::Cold, tag!("cold")) |
+        value!(AttackType::Fire, tag!("fire")) |
+        value!(AttackType::Radiation, tag!("radiation")) |
+        value!(AttackType::Slashing, tag!("slashing"))
     )
 );
 
 named!(
     attack_types<&str, HashSet<AttackType>>,
     do_parse!(
-        attack_types: separated_list!(tag_s!(", "), attack_type) >>
+        attack_types: separated_list!(tag!(", "), attack_type) >>
             (attack_types.into_iter().collect::<HashSet<_>>())
     )
 );
@@ -134,7 +134,7 @@ named!(
 named!(
     weaknesses<&str, HashSet<AttackType>>,
     do_parse!(
-        tag_s!("weak to ") >>
+        tag!("weak to ") >>
         attack_types: attack_types >>
             (attack_types)
     )
@@ -143,7 +143,7 @@ named!(
 named!(
     immunities<&str, HashSet<AttackType>>,
     do_parse!(
-        tag_s!("immune to ") >>
+        tag!("immune to ") >>
         attack_types: attack_types >>
             (attack_types)
     )
@@ -153,34 +153,34 @@ named!(
     opt_weaknesses_immunities_clause<&str, (HashSet<AttackType>, HashSet<AttackType>)>,
     alt!(
         do_parse!(
-            tag_s!("(") >>
+            tag!("(") >>
             weaknesses: weaknesses >>
-            tag_s!(") ") >>
+            tag!(") ") >>
                 (weaknesses, HashSet::new())
         ) |
         do_parse!(
-            tag_s!("(") >>
+            tag!("(") >>
             immunities: immunities >>
-            tag_s!(") ") >>
+            tag!(") ") >>
                 (HashSet::new(), immunities)
         ) |
         do_parse!(
-            tag_s!("(") >>
+            tag!("(") >>
             weaknesses: weaknesses >>
-            tag_s!("; ") >>
+            tag!("; ") >>
             immunities: immunities >>
-            tag_s!(") ") >>
+            tag!(") ") >>
                 (weaknesses, immunities)
         ) |
         do_parse!(
-            tag_s!("(") >>
+            tag!("(") >>
             immunities: immunities >>
-            tag_s!("; ") >>
+            tag!("; ") >>
             weaknesses: weaknesses >>
-            tag_s!(") ") >>
+            tag!(") ") >>
                 (weaknesses, immunities)
         ) |
-        value!((HashSet::new(), HashSet::new()), tag_s!(""))
+        value!((HashSet::new(), HashSet::new()), tag!(""))
     )
 );
 
@@ -188,15 +188,15 @@ named_args!(
     group(side: Side)<&str, Group>,
     do_parse!(
         n: int64 >>
-        tag_s!(" units each with ") >>
+        tag!(" units each with ") >>
         hit_points: int64 >>
-        tag_s!(" hit points ") >>
+        tag!(" hit points ") >>
         wais: opt_weaknesses_immunities_clause >>
-        tag_s!("with an attack that does ") >>
+        tag!("with an attack that does ") >>
         attack_damage: int64 >>
-        tag_s!(" ") >>
+        tag!(" ") >>
         attack_type: attack_type >>
-        tag_s!(" damage at initiative ") >>
+        tag!(" damage at initiative ") >>
         initiative: int64 >>
             (Group { side, n, hit_points, attack_damage, attack_type, initiative, weaknesses: wais.0, immunities: wais.1 })
     )
@@ -210,12 +210,12 @@ named_args!(
 named!(
     input<&str, (Vec<Group>, Vec<Group>)>,
     do_parse!(
-        tag_s!("Immune System:") >>
+        tag!("Immune System:") >>
         line_ending >>
         army1: call!(army, Side::ImmuneSystem) >>
         line_ending >>
         line_ending >>
-        tag_s!("Infection:") >>
+        tag!("Infection:") >>
         line_ending >>
         army2: call!(army, Side::Infection) >>
             ((army1, army2))

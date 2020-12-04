@@ -9,7 +9,6 @@ use nom::error_position;
 use nom::map_res;
 use nom::named;
 use nom::tag;
-use nom::tag_s;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Config {
@@ -26,9 +25,9 @@ named!(int32<&str, i32>,
 named!(config<&str, Config>,
        do_parse!(
            n_players: int32
-               >> tag_s!(" players; last marble is worth ")
+               >> tag!(" players; last marble is worth ")
                >> last_marble: int32
-               >> tag_s!(" points")
+               >> tag!(" points")
                >> (Config{ n_players, last_marble })
        )
 );

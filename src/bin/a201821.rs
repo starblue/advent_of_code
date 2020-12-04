@@ -115,7 +115,7 @@ use std::collections::HashSet;
 
 // named!(ip_decl<&str, i64>,
 //     do_parse!(
-//         tag_s!("#ip ") >>
+//         tag!("#ip ") >>
 //         ip: int64 >>
 //             (ip)
 //     )
@@ -123,33 +123,33 @@ use std::collections::HashSet;
 
 // named!(op<&str, Op>,
 //     alt!(
-//         value!(Op::ADDI, tag_s!("addi")) |
-//         value!(Op::ADDR, tag_s!("addr")) |
-//         value!(Op::MULI, tag_s!("muli")) |
-//         value!(Op::MULR, tag_s!("mulr")) |
-//         value!(Op::BANI, tag_s!("bani")) |
-//         value!(Op::BANR, tag_s!("banr")) |
-//         value!(Op::BORI, tag_s!("bori")) |
-//         value!(Op::BORR, tag_s!("borr")) |
-//         value!(Op::SETI, tag_s!("seti")) |
-//         value!(Op::SETR, tag_s!("setr")) |
-//         value!(Op::GTIR, tag_s!("gtir")) |
-//         value!(Op::GTRI, tag_s!("gtri")) |
-//         value!(Op::GTRR, tag_s!("gtrr")) |
-//         value!(Op::EQIR, tag_s!("eqir")) |
-//         value!(Op::EQRI, tag_s!("eqri")) |
-//         value!(Op::EQRR, tag_s!("eqrr"))
+//         value!(Op::ADDI, tag!("addi")) |
+//         value!(Op::ADDR, tag!("addr")) |
+//         value!(Op::MULI, tag!("muli")) |
+//         value!(Op::MULR, tag!("mulr")) |
+//         value!(Op::BANI, tag!("bani")) |
+//         value!(Op::BANR, tag!("banr")) |
+//         value!(Op::BORI, tag!("bori")) |
+//         value!(Op::BORR, tag!("borr")) |
+//         value!(Op::SETI, tag!("seti")) |
+//         value!(Op::SETR, tag!("setr")) |
+//         value!(Op::GTIR, tag!("gtir")) |
+//         value!(Op::GTRI, tag!("gtri")) |
+//         value!(Op::GTRR, tag!("gtrr")) |
+//         value!(Op::EQIR, tag!("eqir")) |
+//         value!(Op::EQRI, tag!("eqri")) |
+//         value!(Op::EQRR, tag!("eqrr"))
 //     )
 // );
 
 // named!(instr<&str, Instr>,
 //     do_parse!(
 //         op: op >>
-//         tag_s!(" ") >>
+//         tag!(" ") >>
 //         a: int64 >>
-//         tag_s!(" ") >>
+//         tag!(" ") >>
 //         b: int64 >>
-//         tag_s!(" ") >>
+//         tag!(" ") >>
 //         c: int64 >>
 //             (Instr{op, a, b, c})
 //     )

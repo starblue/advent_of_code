@@ -23,23 +23,23 @@ named!(int64<&str, i64>,
 named!(vein<&str, Vein>,
     alt!(
         do_parse!(
-            tag_s!("x=") >>
+            tag!("x=") >>
             x: int64 >>
-            tag_s!(", ") >>
-            tag_s!("y=") >>
+            tag!(", ") >>
+            tag!("y=") >>
             y0: int64 >>
-            tag_s!("..") >>
+            tag!("..") >>
             y1: int64 >>
             line_ending >>
                 (Vein { x0: x, x1: x, y0, y1 })
         ) |
         do_parse!(
-            tag_s!("y=") >>
+            tag!("y=") >>
             y: int64 >>
-            tag_s!(", ") >>
-            tag_s!("x=") >>
+            tag!(", ") >>
+            tag!("x=") >>
             x0: int64 >>
-            tag_s!("..") >>
+            tag!("..") >>
             x1: int64 >>
             line_ending >>
                 (Vein { x0, x1, y0: y, y1: y })

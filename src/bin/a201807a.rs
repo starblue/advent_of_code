@@ -6,18 +6,17 @@ use nom::call;
 use nom::do_parse;
 use nom::named;
 use nom::tag;
-use nom::tag_s;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Before(char, char);
 
 named!(record<&str, Before>,
        do_parse!(
-           tag_s!("Step ")
+           tag!("Step ")
                >>step0: alpha
-               >> tag_s!(" must be finished before step ")
+               >> tag!(" must be finished before step ")
                >>step1: alpha
-               >> tag_s!(" can begin.")
+               >> tag!(" can begin.")
                >> (Before(step0.chars().next().unwrap(), step1.chars().next().unwrap()))
        )
 );

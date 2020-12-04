@@ -17,7 +17,6 @@ use nom::map_res;
 use nom::named;
 use nom::sep;
 use nom::tag;
-use nom::tag_s;
 use nom::wrap_sep;
 use nom::ws;
 
@@ -110,11 +109,11 @@ named!(regs<&str, Regs>,
     do_parse!(
         ws!(char!('[')) >>
         r0: int64 >>
-        ws!(tag_s!(",")) >>
+        ws!(tag!(",")) >>
         r1: int64 >>
-        ws!(tag_s!(",")) >>
+        ws!(tag!(",")) >>
         r2: int64 >>
-        ws!(tag_s!(",")) >>
+        ws!(tag!(",")) >>
         r3: int64 >>
         char!(']') >>
             (Regs(vec![r0, r1, r2, r3]))
@@ -124,11 +123,11 @@ named!(regs<&str, Regs>,
 named!(instr<&str, Instr>,
     do_parse!(
         opc: int64 >>
-        tag_s!(" ") >>
+        tag!(" ") >>
         a: int64 >>
-        tag_s!(" ") >>
+        tag!(" ") >>
         b: int64 >>
-        tag_s!(" ") >>
+        tag!(" ") >>
         c: int64 >>
             (Instr(vec![opc, a, b, c]))
     )
@@ -136,10 +135,10 @@ named!(instr<&str, Instr>,
 
 named!(sample<&str, Sample>,
     do_parse!(
-        ws!(tag_s!("Before:")) >>
+        ws!(tag!("Before:")) >>
         before: regs >> line_ending >>
         instr: instr >> line_ending >>
-        ws!(tag_s!("After:")) >>
+        ws!(tag!("After:")) >>
         after: regs >> line_ending >>
             (Sample { before, instr, after })
     )

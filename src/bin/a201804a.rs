@@ -12,7 +12,6 @@ use nom::error_position;
 use nom::map_res;
 use nom::named;
 use nom::tag;
-use nom::tag_s;
 use nom::value;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -65,12 +64,12 @@ named!(id<&str, i32>, do_parse!(char!('#') >> id: int32 >> (id) ));
 
 named!(action<&str, Action>,
     alt!(
-        value!(Action::FallAsleep, tag_s!(" falls asleep"))
-            | value!(Action::WakeUp, tag_s!(" wakes up"))
+        value!(Action::FallAsleep, tag!(" falls asleep"))
+            | value!(Action::WakeUp, tag!(" wakes up"))
             | do_parse!(
-                tag_s!(" Guard ")
+                tag!(" Guard ")
                     >> id: id
-                    >> tag_s!(" begins shift")
+                    >> tag!(" begins shift")
                     >> (Action::BeginShift { id })
             )
     )

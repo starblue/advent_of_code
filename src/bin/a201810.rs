@@ -14,7 +14,6 @@ use nom::opt;
 use nom::recognize;
 use nom::sep;
 use nom::tag;
-use nom::tag_s;
 use nom::tuple;
 use nom::tuple_parser;
 use nom::wrap_sep;
@@ -53,9 +52,9 @@ named!(
 named!(
     record<&str, Record>,
     do_parse!(
-        ws!(tag_s!("position=")) >>
+        ws!(tag!("position=")) >>
             pos: vec2d >>
-            ws!(tag_s!("velocity=")) >>
+            ws!(tag!("velocity=")) >>
             v: vec2d >>
             (Record { pos, v }))
 );

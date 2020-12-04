@@ -11,7 +11,6 @@ use nom::many0;
 use nom::many_m_n;
 use nom::named;
 use nom::tag;
-use nom::tag_s;
 use nom::value;
 
 const STEPS: i64 = 20;
@@ -33,13 +32,13 @@ named!(pot<&str, bool>,
 );
 
 named!(initial_state<&str, Vec<bool>>,
-    do_parse!(tag_s!("initial state: ") >> v: many0!(pot) >> (v))
+    do_parse!(tag!("initial state: ") >> v: many0!(pot) >> (v))
 );
 
 named!(rule<&str, Rule>,
     do_parse!(
         left: many_m_n!(5, 5, pot) >>
-            tag_s!(" => ") >>
+            tag!(" => ") >>
             right: pot >> (Rule { left, right })
     )
 );
