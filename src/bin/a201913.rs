@@ -273,13 +273,13 @@ fn main() {
         .expect("I/O error");
 
     // make nom happy
-    input_data.push_str("\n");
+    input_data.push('\n');
 
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
 
-    let mut mem = result.unwrap().1;
+    let mem = result.unwrap().1;
 
     let mut state_a = State::new("A", &mem);
     let mut board_a = Board::new();

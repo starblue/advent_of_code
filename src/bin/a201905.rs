@@ -132,7 +132,7 @@ fn main() {
         .expect("I/O error");
 
     // make nom happy
-    input_data.push_str("\n");
+    input_data.push('\n');
 
     // parse input
     let result = input(&input_data);
