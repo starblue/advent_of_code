@@ -7,8 +7,8 @@ use std::str::FromStr;
 use nom::*;
 
 use twodim::p2d;
+use twodim::v2d;
 use twodim::Point2d;
-use twodim::Vec2d;
 
 named!(
     int64<&str, i64>,
@@ -219,76 +219,22 @@ impl State {
     }
 }
 
-const BLACK: i64 = 0;
-const WHITE: i64 = 1;
-
-struct Robot {
-    plane: HashMap<Point2d, i64>,
-    pos: Point2d,
-    dir: usize,
+fn is_pulled(mem: &[i64], p: Point2d<i64>) -> bool {
+    let mut state_a = State::new("A", mem);
+    state_a.push_input(p.x);
+    state_a.push_input(p.y);
+    let mut output = None;
+    while output == None {
+        state_a.step();
+        // a step can produce at most one output
+        output = state_a.pop_output();
+    }
+    output.unwrap() == 1
 }
-impl Robot {
-    fn new() -> Robot {
-        Robot {
-            plane: HashMap::new(),
-            pos: p2d(0, 0),
-            dir: 1,
-        }
-    }
-    fn step(&mut self, c: i64, t: i64) {
-        self.paint(c);
-        self.turn(t);
-        self.forward();
-    }
-    fn paint(&mut self, c: i64) {
-        self.plane.insert(self.pos, c);
-    }
-    fn turn(&mut self, t: i64) {
-        match t {
-            0 => {
-                // turn left
-                self.dir = (self.dir + 1) % 4;
-            }
-            1 => {
-                // turn right
-                self.dir = (self.dir + 3) % 4;
-            }
-            _ => {
-                panic!("illegal turn value");
-            }
-        }
-    }
-    fn forward(&mut self) {
-        self.pos += Vec2d::directions()[self.dir];
-    }
-    fn look(&self) -> i64 {
-        *self.plane.get(&self.pos).unwrap_or(&BLACK)
-    }
-    fn painted_panels_count(&self) -> usize {
-        self.plane.len()
-    }
-    fn dump_plane(&self) {
-        let mut x_min = std::i64::MAX;
-        let mut x_max = std::i64::MIN;
-        let mut y_min = std::i64::MAX;
-        let mut y_max = std::i64::MIN;
-        for &p in self.plane.keys() {
-            x_min = x_min.min(p.x);
-            x_max = x_max.max(p.x);
-            y_min = y_min.min(p.y);
-            y_max = y_max.max(p.y);
-        }
-        for y in (-y_max)..=(-y_min) {
-            for x in x_min..=x_max {
-                if let Some(&c) = self.plane.get(&p2d(x, -y)) {
-                    print!("{}", vec!['.', '#'][c as usize]);
-                } else {
-                    print!(" ")
-                }
-            }
-            println!();
-        }
-    }
+
+fn square_fits(mem: &[i64], p: Point2d<i64>) -> bool {
+    let vs = vec![v2d(0, 0), v2d(99, 0), v2d(0, 99), v2d(99, 99)];
+    vs.iter().all(|v| is_pulled(&mem, p + v))
 }
 
 fn main() {
@@ -306,54 +252,42 @@ fn main() {
 
     let mem = result.unwrap().1;
 
-    let mut state_a = State::new("A", &mem);
-    let mut robot_a = Robot::new();
-
-    while !state_a.is_halted() {
-        let c = robot_a.look();
-
-        state_a.push_input(c);
-        let mut output = Vec::new();
-        while !state_a.is_halted() && output.len() < 2 {
-            state_a.step();
-            // a step can produce at most one output
-            if let Some(d) = state_a.pop_output() {
-                output.push(d);
+    let mut count = 0;
+    for y in 0..50 {
+        for x in 0..50 {
+            if is_pulled(&mem, p2d(x, y)) {
+                count += 1;
+                print!("#");
+            } else {
+                print!(".");
             }
         }
-        if output.len() >= 2 {
-            let c = output[0];
-            let t = output[1];
-            robot_a.step(c, t);
-        }
+        println!();
     }
 
-    let mut state_b = State::new("A", &mem);
-    let mut robot_b = Robot::new();
-    robot_b.paint(WHITE);
-
-    while !state_b.is_halted() {
-        let c = robot_b.look();
-
-        state_b.push_input(c);
-        let mut output = Vec::new();
-        while !state_b.is_halted() && output.len() < 2 {
-            state_b.step();
-            // a step can produce at most one output
-            if let Some(d) = state_b.pop_output() {
-                output.push(d);
-            }
-        }
-        if output.len() >= 2 {
-            let c = output[0];
-            let t = output[1];
-            robot_b.step(c, t);
-        }
+    let mut p = p2d(5000, 250);
+    // find last tractor square in line
+    while !is_pulled(&mem, p) {
+        p -= v2d(1, 0);
     }
-    robot_b.dump_plane();
+    while !square_fits(&mem, p - v2d(99, 0)) {
+        p += v2d(0, 1);
+        // find last tractor square in line
+        while is_pulled(&mem, p) {
+            p += v2d(1, 0);
+        }
+        p -= v2d(1, 0);
+    }
+    // go to nw corner
+    p -= v2d(99, 0);
+    // find first tractor square where square fits
+    while square_fits(&mem, p) {
+        p -= v2d(1, 0);
+    }
+    p += v2d(1, 0);
 
-    let result_a = robot_a.painted_panels_count();
-    let result_b = "KRZEAJHB";
+    let result_a = count;
+    let result_b = p.x * 10000 + p.y;
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

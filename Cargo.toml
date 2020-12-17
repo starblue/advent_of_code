@@ -1,13 +1,11 @@
-[package]
-edition = "2018"
-name = "advent_of_code"
-version = "0.1.0"
-authors = ["Juergen Stuber <juergen@jstuber.net>"]
+[workspace]
 
-[dependencies]
-ena = "0.5.0"
-nom = "4.1.1"
-num = "0.2.0"
-num-integer = "0.1.41"
-rand = "0.6.0"
-twodim = { path = "../twodim", version = "0.1.0" }
+members = [
+    "a2017",
+    "a2018",
+    "a2019",
+    "a2020",
+]
+
+[profile.dev]
+opt-level = 1

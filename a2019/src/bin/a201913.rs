@@ -7,7 +7,6 @@ use std::str::FromStr;
 use nom::*;
 
 use twodim::p2d;
-use twodim::v2d;
 use twodim::Point2d;
 
 named!(
@@ -28,6 +27,7 @@ struct State {
     output: VecDeque<i64>,
     ip: i64,
     rb: i64,
+    default_input: Option<i64>,
     saved_ip: i64,
     halted: bool,
 }
@@ -97,6 +97,7 @@ impl State {
             output: VecDeque::new(),
             ip: 0,
             rb: 0,
+            default_input: None,
             saved_ip: 0,
             halted: false,
         }
@@ -120,6 +121,9 @@ impl State {
     }
     fn push_input(&mut self, input: i64) {
         self.input.push_back(input)
+    }
+    fn set_default_input(&mut self, input: Option<i64>) {
+        self.default_input = input;
     }
     fn pop_output(&mut self) -> Option<i64> {
         self.output.pop_front()
@@ -163,8 +167,10 @@ impl State {
                     let a0 = ds.address_parameter();
                     if let Some(v) = self.input.pop_front() {
                         self.store(a0, v);
+                    } else if let Some(v) = self.default_input {
+                        self.store(a0, v);
                     } else {
-                        // no input available, do nothing
+                        // no input available, block at this instruction
                         self.undo_decode();
                     }
                 }
@@ -219,22 +225,45 @@ impl State {
     }
 }
 
-fn is_pulled(mem: &[i64], p: Point2d) -> bool {
-    let mut state_a = State::new("A", mem);
-    state_a.push_input(p.x);
-    state_a.push_input(p.y);
-    let mut output = None;
-    while output == None {
-        state_a.step();
-        // a step can produce at most one output
-        output = state_a.pop_output();
-    }
-    output.unwrap() == 1
-}
+const EMPTY: i64 = 0;
+const WALL: i64 = 1;
+const BLOCK: i64 = 2;
+const PADDLE: i64 = 3;
+const BALL: i64 = 4;
 
-fn square_fits(mem: &[i64], p: Point2d) -> bool {
-    let vs = vec![v2d(0, 0), v2d(99, 0), v2d(0, 99), v2d(99, 99)];
-    vs.iter().all(|v| is_pulled(&mem, p + v))
+struct Board(HashMap<Point2d<i64>, i64>);
+impl Board {
+    fn new() -> Board {
+        Board(HashMap::new())
+    }
+    fn paint(&mut self, p: Point2d<i64>, t: i64) {
+        self.0.insert(p, t);
+    }
+    fn tile_count(&self, t: i64) -> usize {
+        self.0.iter().filter(|(_, t1)| **t1 == t).count()
+    }
+    fn dump(&self) {
+        let mut x_min = std::i64::MAX;
+        let mut x_max = std::i64::MIN;
+        let mut y_min = std::i64::MAX;
+        let mut y_max = std::i64::MIN;
+        for &p in self.0.keys() {
+            x_min = x_min.min(p.x);
+            x_max = x_max.max(p.x);
+            y_min = y_min.min(p.y);
+            y_max = y_max.max(p.y);
+        }
+        for y in y_min..=y_max {
+            for x in x_min..=x_max {
+                if let Some(&c) = self.0.get(&p2d(x, y)) {
+                    print!("{}", vec![' ', 'W', 'B', '-', 'o'][c as usize]);
+                } else {
+                    print!(" ")
+                }
+            }
+            println!();
+        }
+    }
 }
 
 fn main() {
@@ -252,42 +281,78 @@ fn main() {
 
     let mem = result.unwrap().1;
 
-    let mut count = 0;
-    for y in 0..50 {
-        for x in 0..50 {
-            if is_pulled(&mem, p2d(x, y)) {
-                count += 1;
-                print!("#");
-            } else {
-                print!(".");
+    let mut state_a = State::new("A", &mem);
+    let mut board_a = Board::new();
+
+    while !state_a.is_halted() {
+        let mut output = Vec::new();
+        while !state_a.is_halted() && output.len() < 3 {
+            state_a.step();
+            // a step can produce at most one output
+            if let Some(d) = state_a.pop_output() {
+                output.push(d);
             }
         }
-        println!();
-    }
-
-    let mut p = p2d(5000, 250);
-    // find last tractor square in line
-    while !is_pulled(&mem, p) {
-        p -= v2d(1, 0);
-    }
-    while !square_fits(&mem, p - v2d(99, 0)) {
-        p += v2d(0, 1);
-        // find last tractor square in line
-        while is_pulled(&mem, p) {
-            p += v2d(1, 0);
+        if output.len() >= 3 {
+            let x = output[0];
+            let y = output[1];
+            let t = output[2];
+            board_a.paint(p2d(x, y), t);
         }
-        p -= v2d(1, 0);
+        //board_a.dump();
     }
-    // go to nw corner
-    p -= v2d(99, 0);
-    // find first tractor square where square fits
-    while square_fits(&mem, p) {
-        p -= v2d(1, 0);
-    }
-    p += v2d(1, 0);
 
-    let result_a = count;
-    let result_b = p.x * 10000 + p.y;
+    let mut state_b = State::new("B", &mem);
+    state_b.store(0, 2);
+    let mut board_b = Board::new();
+    let mut score = 0;
+    let mut ball_x = 0;
+    let mut paddle_x = 0;
+    while !state_b.is_halted() {
+        let mut output = Vec::new();
+        while !state_b.is_halted() && output.len() < 3 {
+            state_b.step();
+            // a step can produce at most one output
+            if let Some(d) = state_b.pop_output() {
+                output.push(d);
+            }
+        }
+        if output.len() >= 3 {
+            let x = output[0];
+            let y = output[1];
+            let t = output[2];
+            if x == -1 && y == 0 {
+                score = t;
+            } else {
+                board_b.paint(p2d(x, y), t);
+                if t == BALL {
+                    ball_x = x;
+                } else if t == PADDLE {
+                    paddle_x = x;
+                } else {
+                    // do nothing
+                }
+            }
+        }
+
+        // control paddle
+        state_b.set_default_input(Some({
+            if ball_x < paddle_x {
+                -1
+            } else if ball_x > paddle_x {
+                1
+            } else {
+                0
+            }
+        }));
+
+        // println!("Score {}", score);
+        // board_b.dump();
+        // println!();
+    }
+
+    let result_a = board_a.tile_count(BLOCK);
+    let result_b = score;
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

@@ -8,6 +8,7 @@ use nom::*;
 
 use twodim::p2d;
 use twodim::Point2d;
+use twodim::Vec2d;
 
 named!(
     int64<&str, i64>,
@@ -27,7 +28,6 @@ struct State {
     output: VecDeque<i64>,
     ip: i64,
     rb: i64,
-    default_input: Option<i64>,
     saved_ip: i64,
     halted: bool,
 }
@@ -97,7 +97,6 @@ impl State {
             output: VecDeque::new(),
             ip: 0,
             rb: 0,
-            default_input: None,
             saved_ip: 0,
             halted: false,
         }
@@ -121,9 +120,6 @@ impl State {
     }
     fn push_input(&mut self, input: i64) {
         self.input.push_back(input)
-    }
-    fn set_default_input(&mut self, input: Option<i64>) {
-        self.default_input = input;
     }
     fn pop_output(&mut self) -> Option<i64> {
         self.output.pop_front()
@@ -167,10 +163,8 @@ impl State {
                     let a0 = ds.address_parameter();
                     if let Some(v) = self.input.pop_front() {
                         self.store(a0, v);
-                    } else if let Some(v) = self.default_input {
-                        self.store(a0, v);
                     } else {
-                        // no input available, block at this instruction
+                        // no input available, do nothing
                         self.undo_decode();
                     }
                 }
@@ -225,38 +219,69 @@ impl State {
     }
 }
 
-const EMPTY: i64 = 0;
-const WALL: i64 = 1;
-const BLOCK: i64 = 2;
-const PADDLE: i64 = 3;
-const BALL: i64 = 4;
+const BLACK: i64 = 0;
+const WHITE: i64 = 1;
 
-struct Board(HashMap<Point2d, i64>);
-impl Board {
-    fn new() -> Board {
-        Board(HashMap::new())
+struct Robot {
+    plane: HashMap<Point2d<i64>, i64>,
+    pos: Point2d<i64>,
+    dir: usize,
+}
+impl Robot {
+    fn new() -> Robot {
+        Robot {
+            plane: HashMap::new(),
+            pos: p2d(0, 0),
+            dir: 1,
+        }
     }
-    fn paint(&mut self, p: Point2d, t: i64) {
-        self.0.insert(p, t);
+    fn step(&mut self, c: i64, t: i64) {
+        self.paint(c);
+        self.turn(t);
+        self.forward();
     }
-    fn tile_count(&self, t: i64) -> usize {
-        self.0.iter().filter(|(_, t1)| **t1 == t).count()
+    fn paint(&mut self, c: i64) {
+        self.plane.insert(self.pos, c);
     }
-    fn dump(&self) {
+    fn turn(&mut self, t: i64) {
+        match t {
+            0 => {
+                // turn left
+                self.dir = (self.dir + 1) % 4;
+            }
+            1 => {
+                // turn right
+                self.dir = (self.dir + 3) % 4;
+            }
+            _ => {
+                panic!("illegal turn value");
+            }
+        }
+    }
+    fn forward(&mut self) {
+        self.pos += Vec2d::directions()[self.dir];
+    }
+    fn look(&self) -> i64 {
+        *self.plane.get(&self.pos).unwrap_or(&BLACK)
+    }
+    fn painted_panels_count(&self) -> usize {
+        self.plane.len()
+    }
+    fn dump_plane(&self) {
         let mut x_min = std::i64::MAX;
         let mut x_max = std::i64::MIN;
         let mut y_min = std::i64::MAX;
         let mut y_max = std::i64::MIN;
-        for &p in self.0.keys() {
+        for &p in self.plane.keys() {
             x_min = x_min.min(p.x);
             x_max = x_max.max(p.x);
             y_min = y_min.min(p.y);
             y_max = y_max.max(p.y);
         }
-        for y in y_min..=y_max {
+        for y in (-y_max)..=(-y_min) {
             for x in x_min..=x_max {
-                if let Some(&c) = self.0.get(&p2d(x, y)) {
-                    print!("{}", vec![' ', 'W', 'B', '-', 'o'][c as usize]);
+                if let Some(&c) = self.plane.get(&p2d(x, -y)) {
+                    print!("{}", vec!['.', '#'][c as usize]);
                 } else {
                     print!(" ")
                 }
@@ -282,77 +307,53 @@ fn main() {
     let mem = result.unwrap().1;
 
     let mut state_a = State::new("A", &mem);
-    let mut board_a = Board::new();
+    let mut robot_a = Robot::new();
 
     while !state_a.is_halted() {
+        let c = robot_a.look();
+
+        state_a.push_input(c);
         let mut output = Vec::new();
-        while !state_a.is_halted() && output.len() < 3 {
+        while !state_a.is_halted() && output.len() < 2 {
             state_a.step();
             // a step can produce at most one output
             if let Some(d) = state_a.pop_output() {
                 output.push(d);
             }
         }
-        if output.len() >= 3 {
-            let x = output[0];
-            let y = output[1];
-            let t = output[2];
-            board_a.paint(p2d(x, y), t);
+        if output.len() >= 2 {
+            let c = output[0];
+            let t = output[1];
+            robot_a.step(c, t);
         }
-        //board_a.dump();
     }
 
-    let mut state_b = State::new("B", &mem);
-    state_b.store(0, 2);
-    let mut board_b = Board::new();
-    let mut score = 0;
-    let mut ball_x = 0;
-    let mut paddle_x = 0;
+    let mut state_b = State::new("A", &mem);
+    let mut robot_b = Robot::new();
+    robot_b.paint(WHITE);
+
     while !state_b.is_halted() {
+        let c = robot_b.look();
+
+        state_b.push_input(c);
         let mut output = Vec::new();
-        while !state_b.is_halted() && output.len() < 3 {
+        while !state_b.is_halted() && output.len() < 2 {
             state_b.step();
             // a step can produce at most one output
             if let Some(d) = state_b.pop_output() {
                 output.push(d);
             }
         }
-        if output.len() >= 3 {
-            let x = output[0];
-            let y = output[1];
-            let t = output[2];
-            if x == -1 && y == 0 {
-                score = t;
-            } else {
-                board_b.paint(p2d(x, y), t);
-                if t == BALL {
-                    ball_x = x;
-                } else if t == PADDLE {
-                    paddle_x = x;
-                } else {
-                    // do nothing
-                }
-            }
+        if output.len() >= 2 {
+            let c = output[0];
+            let t = output[1];
+            robot_b.step(c, t);
         }
-
-        // control paddle
-        state_b.set_default_input(Some({
-            if ball_x < paddle_x {
-                -1
-            } else if ball_x > paddle_x {
-                1
-            } else {
-                0
-            }
-        }));
-
-        // println!("Score {}", score);
-        // board_b.dump();
-        // println!();
     }
+    robot_b.dump_plane();
 
-    let result_a = board_a.tile_count(BLOCK);
-    let result_b = score;
+    let result_a = robot_a.painted_panels_count();
+    let result_b = "KRZEAJHB";
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

@@ -31,7 +31,7 @@ named!(
     )
 );
 
-fn polar(v: Vec2d) -> (i64, Vec2d) {
+fn polar(v: Vec2d<i64>) -> (i64, Vec2d<i64>) {
     let d = gcd(v.x, v.y);
     (d, v2d(v.x / d, v.y / d))
 }
