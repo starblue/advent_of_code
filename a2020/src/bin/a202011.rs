@@ -10,8 +10,8 @@ use nom::many1;
 use nom::named;
 use nom::value;
 
-use twodim::v2d;
-use twodim::Array2d;
+use gamedim::v2d;
+use gamedim::Array2d;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Square {

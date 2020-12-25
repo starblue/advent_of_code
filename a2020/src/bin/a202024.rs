@@ -11,10 +11,10 @@ use nom::named;
 use nom::tag;
 use nom::value;
 
-use twodim::p2d;
-use twodim::v2d;
-use twodim::Point2d;
-use twodim::Vec2d;
+use gamedim::p2d;
+use gamedim::v2d;
+use gamedim::Point2d;
+use gamedim::Vec2d;
 
 #[derive(Clone, Copy, Debug)]
 enum Dir {

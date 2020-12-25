@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use nom::*;
 
-use twodim::p2d;
-use twodim::v2d;
-use twodim::Point2d;
+use gamedim::p2d;
+use gamedim::v2d;
+use gamedim::Point2d;
 
 named!(
     int64<&str, i64>,
@@ -221,8 +221,8 @@ impl State {
 
 fn is_pulled(mem: &[i64], p: Point2d<i64>) -> bool {
     let mut state_a = State::new("A", mem);
-    state_a.push_input(p.x);
-    state_a.push_input(p.y);
+    state_a.push_input(p.x());
+    state_a.push_input(p.y());
     let mut output = None;
     while output == None {
         state_a.step();
@@ -287,7 +287,7 @@ fn main() {
     p += v2d(1, 0);
 
     let result_a = count;
-    let result_b = p.x * 10000 + p.y;
+    let result_b = p.x() * 10000 + p.y();
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

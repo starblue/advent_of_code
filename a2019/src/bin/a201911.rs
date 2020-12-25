@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use nom::*;
 
-use twodim::p2d;
-use twodim::Point2d;
-use twodim::Vec2d;
+use gamedim::p2d;
+use gamedim::Point2d;
+use gamedim::Vec2d;
 
 named!(
     int64<&str, i64>,
@@ -273,10 +273,10 @@ impl Robot {
         let mut y_min = std::i64::MAX;
         let mut y_max = std::i64::MIN;
         for &p in self.plane.keys() {
-            x_min = x_min.min(p.x);
-            x_max = x_max.max(p.x);
-            y_min = y_min.min(p.y);
-            y_max = y_max.max(p.y);
+            x_min = x_min.min(p.x());
+            x_max = x_max.max(p.x());
+            y_min = y_min.min(p.y());
+            y_max = y_max.max(p.y());
         }
         for y in (-y_max)..=(-y_min) {
             for x in x_min..=x_max {

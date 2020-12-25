@@ -4,9 +4,9 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use twodim::p2d;
-use twodim::v2d;
-use twodim::Matrix2d;
+use gamedim::p2d;
+use gamedim::v2d;
+use gamedim::Matrix2d;
 
 use nom::alt;
 use nom::digit;
@@ -142,7 +142,7 @@ fn main() {
         }
     }
 
-    let result_a = p.x.abs() + p.y.abs();
+    let result_a = p.x().abs() + p.y().abs();
 
     let mut p = p2d(0, 0);
     // the waypoint
@@ -180,7 +180,7 @@ fn main() {
             }
         }
     }
-    let result_b = p.x.abs() + p.y.abs();
+    let result_b = p.x().abs() + p.y().abs();
 
     println!("a: {}", result_a);
     println!("b: {}", result_b);

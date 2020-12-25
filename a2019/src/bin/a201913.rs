@@ -6,8 +6,8 @@ use std::str::FromStr;
 
 use nom::*;
 
-use twodim::p2d;
-use twodim::Point2d;
+use gamedim::p2d;
+use gamedim::Point2d;
 
 named!(
     int64<&str, i64>,

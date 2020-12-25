@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use nom::*;
 
-use twodim::p2d;
-use twodim::Point2d;
-use twodim::Vec2d;
+use gamedim::p2d;
+use gamedim::Point2d;
+use gamedim::Vec2d;
 
 #[derive(Clone, Copy, Debug)]
 struct Link {

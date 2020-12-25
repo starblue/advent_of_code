@@ -5,9 +5,9 @@ use nom::*;
 
 use num::integer::gcd;
 
-use twodim::p2d;
-use twodim::v2d;
-use twodim::Vec2d;
+use gamedim::p2d;
+use gamedim::v2d;
+use gamedim::Vec2d;
 
 named!(cell<&str, bool>,
     alt!(
@@ -32,8 +32,8 @@ named!(
 );
 
 fn polar(v: Vec2d<i64>) -> (i64, Vec2d<i64>) {
-    let d = gcd(v.x, v.y);
-    (d, v2d(v.x / d, v.y / d))
+    let d = gcd(v.x(), v.y());
+    (d, v2d(v.x() / d, v.y() / d))
 }
 
 fn main() {
