@@ -134,7 +134,7 @@ fn main() {
 
     let map = reactions
         .iter()
-        .map(|r| (r.output_chemical().clone(), r))
+        .map(|r| (r.output_chemical(), r))
         .collect::<HashMap<_, _>>();
 
     let ore = 1_000_000_000_000;

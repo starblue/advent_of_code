@@ -119,6 +119,7 @@ impl State {
             panic!("attempt to store to negative address");
         }
     }
+    #[allow(unused)]
     fn push_input(&mut self, input: i64) {
         self.input.push_back(input)
     }
@@ -225,8 +226,8 @@ impl State {
     }
 }
 
-const EMPTY: i64 = 0;
-const WALL: i64 = 1;
+//const EMPTY: i64 = 0;
+//const WALL: i64 = 1;
 const BLOCK: i64 = 2;
 const PADDLE: i64 = 3;
 const BALL: i64 = 4;
@@ -242,6 +243,7 @@ impl Board {
     fn tile_count(&self, t: i64) -> usize {
         self.0.iter().filter(|(_, t1)| **t1 == t).count()
     }
+    #[allow(unused)]
     fn dump(&self) {
         let mut x_min = std::i64::MAX;
         let mut x_max = std::i64::MIN;

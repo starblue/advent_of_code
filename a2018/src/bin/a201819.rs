@@ -165,7 +165,7 @@ named!(input<&str, (i64, Vec<Instr>)>,
     )
 );
 
-fn run(ip_reg: i64, instrs: &Vec<Instr>, regs: &mut Regs) {
+fn run(ip_reg: i64, instrs: &[Instr], regs: &mut Regs) {
     let mut ip = 0;
     while 0 <= ip && ip < instrs.len() as i64 {
         if ip == 3 {

@@ -33,8 +33,8 @@ fn main() {
                 .enumerate()
                 .max_by(|&(i1, v1), &(i2, v2)| v1.cmp(&v2).then(i2.cmp(&i1)))
                 .unwrap();
-            i = p.0.clone();
-            value = p.1.clone();
+            i = p.0;
+            value = *p.1;
         }
 
         state[i] = 0;

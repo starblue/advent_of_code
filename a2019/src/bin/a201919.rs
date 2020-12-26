@@ -124,6 +124,7 @@ impl State {
     fn pop_output(&mut self) -> Option<i64> {
         self.output.pop_front()
     }
+    #[allow(unused)]
     fn is_halted(&self) -> bool {
         self.halted
     }

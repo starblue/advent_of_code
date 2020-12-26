@@ -44,7 +44,7 @@ fn max_square(serial: i64) -> Data {
                     max_sum = sum;
                     // top left in one-based coordinates
                     max_data = Some(Data {
-                        sum: sum,
+                        sum,
                         x: (x0 + 1) as i64,
                         y: (y0 + 1) as i64,
                         size: s as i64,

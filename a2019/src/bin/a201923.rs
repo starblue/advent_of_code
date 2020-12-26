@@ -252,7 +252,7 @@ fn main() {
 
     let mut states_a = (0..n)
         .map(|i| {
-            let mut state = State::new(&format!("NIC"), &mem);
+            let mut state = State::new("NIC", &mem);
             state.set_default_input(Some(-1));
             state.push_input(i as i64);
             state
@@ -292,7 +292,7 @@ fn main() {
 
     let mut states_b = (0..n)
         .map(|i| {
-            let mut state = State::new(&format!("NIC"), &mem);
+            let mut state = State::new("NIC", &mem);
             state.set_default_input(Some(-1));
             state.push_input(i as i64);
             state

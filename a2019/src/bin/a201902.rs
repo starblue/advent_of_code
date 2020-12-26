@@ -50,10 +50,10 @@ fn run(state: Vec<i64>, noun: i64, verb: i64) -> i64 {
     state[0]
 }
 
-fn find_inputs(state: &Vec<i64>, result: i64) -> i64 {
+fn find_inputs(state: &[i64], result: i64) -> i64 {
     for noun in 0..100 {
         for verb in 0..100 {
-            if run(state.clone(), noun, verb) == result {
+            if run(state.to_vec(), noun, verb) == result {
                 return 100 * noun + verb;
             }
         }
