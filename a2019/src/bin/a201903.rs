@@ -89,7 +89,7 @@ fn main() {
     let mut min_dist_a = std::i64::MAX;
     let mut min_dist_b = std::i64::MAX;
     for p in ps0.intersection(&ps1) {
-        let dist_a = p.x.abs() + p.y.abs();
+        let dist_a = p.x().abs() + p.y().abs();
         if dist_a < min_dist_a {
             min_dist_a = dist_a;
         }

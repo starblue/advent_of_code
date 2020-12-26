@@ -248,10 +248,10 @@ impl Board {
         let mut y_min = std::i64::MAX;
         let mut y_max = std::i64::MIN;
         for &p in self.0.keys() {
-            x_min = x_min.min(p.x);
-            x_max = x_max.max(p.x);
-            y_min = y_min.min(p.y);
-            y_max = y_max.max(p.y);
+            x_min = x_min.min(p.x());
+            x_max = x_max.max(p.x());
+            y_min = y_min.min(p.y());
+            y_max = y_max.max(p.y());
         }
         for y in y_min..=y_max {
             for x in x_min..=x_max {

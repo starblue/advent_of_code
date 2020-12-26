@@ -322,8 +322,8 @@ fn main() {
 
     let pa = first_crash_pos.unwrap();
     let pb = last_cart_pos;
-    let result_a = format!("{},{}", pa.x, pa.y);
-    let result_b = format!("{},{}", pb.x, pb.y);
+    let result_a = format!("{},{}", pa.x(), pa.y());
+    let result_b = format!("{},{}", pb.x(), pb.y());
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }
