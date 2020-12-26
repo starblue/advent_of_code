@@ -7,6 +7,7 @@ use std::str::FromStr;
 use nom::*;
 
 use gamedim::p2d;
+use gamedim::v2d;
 use gamedim::Point2d;
 use gamedim::Vec2d;
 
@@ -225,14 +226,14 @@ const WHITE: i64 = 1;
 struct Robot {
     plane: HashMap<Point2d<i64>, i64>,
     pos: Point2d<i64>,
-    dir: usize,
+    dir: Vec2d,
 }
 impl Robot {
     fn new() -> Robot {
         Robot {
             plane: HashMap::new(),
             pos: p2d(0, 0),
-            dir: 1,
+            dir: v2d(0, 1),
         }
     }
     fn step(&mut self, c: i64, t: i64) {
@@ -246,12 +247,10 @@ impl Robot {
     fn turn(&mut self, t: i64) {
         match t {
             0 => {
-                // turn left
-                self.dir = (self.dir + 1) % 4;
+                self.dir = self.dir.rotate_left();
             }
             1 => {
-                // turn right
-                self.dir = (self.dir + 3) % 4;
+                self.dir = self.dir.rotate_right();
             }
             _ => {
                 panic!("illegal turn value");
@@ -259,7 +258,7 @@ impl Robot {
         }
     }
     fn forward(&mut self) {
-        self.pos += Vec2d::directions()[self.dir];
+        self.pos += self.dir;
     }
     fn look(&self) -> i64 {
         *self.plane.get(&self.pos).unwrap_or(&BLACK)

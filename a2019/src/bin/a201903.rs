@@ -7,12 +7,13 @@ use std::str::FromStr;
 use nom::*;
 
 use gamedim::p2d;
+use gamedim::v2d;
 use gamedim::Point2d;
 use gamedim::Vec2d;
 
 #[derive(Clone, Copy, Debug)]
 struct Link {
-    dir: usize,
+    dir: Vec2d,
     steps: usize,
 }
 
@@ -21,12 +22,12 @@ named!(
     map_res!(digit, FromStr::from_str)
 );
 
-named!(dir<&str, usize>,
+named!(dir<&str, Vec2d>,
     alt!(
-        value!(0, char!('R')) |
-        value!(1, char!('U')) |
-        value!(2, char!('L')) |
-        value!(3, char!('D'))
+        value!(v2d(1, 0), char!('R')) |
+        value!(v2d(0, 1), char!('U')) |
+        value!(v2d(-1, 0), char!('L')) |
+        value!(v2d(0, -1), char!('D'))
     )
 );
 
@@ -56,7 +57,6 @@ fn positions(path: Vec<Link>) -> HashMap<Point2d<i64>, i64> {
     let mut p = p2d(0, 0);
     let mut d = 0;
     for Link { dir, steps } in path {
-        let dir = Vec2d::directions()[dir];
         for _ in 0..steps {
             p += dir;
             d += 1;
