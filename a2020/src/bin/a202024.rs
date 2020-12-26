@@ -43,7 +43,7 @@ impl Dir {
     ///
     /// One step in x direction is east, in y direction northwest,
     /// same as for Eisenstein numbers.
-    fn to_v2d(&self) -> Vec2d<i64> {
+    fn to_v2d(&self) -> Vec2d {
         match self {
             Dir::E => v2d(1, 0),
             Dir::NE => v2d(1, 1),
@@ -63,7 +63,7 @@ impl fmt::Display for Dir {
 #[derive(Clone, Debug)]
 struct Tile(Vec<Dir>);
 impl Tile {
-    fn pos(&self) -> Point2d<i64> {
+    fn pos(&self) -> Point2d {
         self.0.iter().map(Dir::to_v2d).fold(p2d(0, 0), |p, v| p + v)
     }
 }
@@ -103,7 +103,7 @@ named!(input<&str, Vec<Tile>>,
     )
 );
 
-fn neighbors(p: Point2d<i64>) -> Vec<Point2d<i64>> {
+fn neighbors(p: Point2d) -> Vec<Point2d> {
     DIRS.iter().map(|d| p + d.to_v2d()).collect::<Vec<_>>()
 }
 
@@ -140,11 +140,11 @@ fn main() {
         let neighbor_positions = black_positions
             .iter()
             .flat_map(|&p| neighbors(p).into_iter())
-            .collect::<HashSet<Point2d<i64>>>();
+            .collect::<HashSet<Point2d>>();
         let positions = black_positions
             .union(&neighbor_positions)
             .cloned()
-            .collect::<HashSet<Point2d<i64>>>();
+            .collect::<HashSet<Point2d>>();
         let new_black_positions = positions
             .into_iter()
             .filter(|&p| {

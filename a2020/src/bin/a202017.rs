@@ -59,7 +59,7 @@ named!(
     )
 );
 
-fn neighbors3d(p: Point3d<i64>) -> Vec<Point3d<i64>> {
+fn neighbors3d(p: Point3d) -> Vec<Point3d> {
     let mut result = Vec::new();
     for dx in -1..=1 {
         for dy in -1..=1 {
@@ -72,7 +72,7 @@ fn neighbors3d(p: Point3d<i64>) -> Vec<Point3d<i64>> {
     }
     result
 }
-fn neighbors4d(p: Point4d<i64>) -> Vec<Point4d<i64>> {
+fn neighbors4d(p: Point4d) -> Vec<Point4d> {
     let mut result = Vec::new();
     for dx in -1..=1 {
         for dy in -1..=1 {
@@ -122,11 +122,11 @@ fn main() {
         let neighbor_positions = active_positions
             .iter()
             .flat_map(|&p| neighbors3d(p).into_iter())
-            .collect::<HashSet<Point3d<i64>>>();
+            .collect::<HashSet<Point3d>>();
         let positions = active_positions
             .union(&neighbor_positions)
             .cloned()
-            .collect::<HashSet<Point3d<i64>>>();
+            .collect::<HashSet<Point3d>>();
         let new_active_positions = positions
             .into_iter()
             .filter(|&p| {
@@ -160,11 +160,11 @@ fn main() {
         let neighbor_positions = active_positions
             .iter()
             .flat_map(|&p| neighbors4d(p).into_iter())
-            .collect::<HashSet<Point4d<i64>>>();
+            .collect::<HashSet<Point4d>>();
         let positions = active_positions
             .union(&neighbor_positions)
             .cloned()
-            .collect::<HashSet<Point4d<i64>>>();
+            .collect::<HashSet<Point4d>>();
         let new_active_positions = positions
             .into_iter()
             .filter(|&p| {

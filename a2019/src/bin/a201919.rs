@@ -219,7 +219,7 @@ impl State {
     }
 }
 
-fn is_pulled(mem: &[i64], p: Point2d<i64>) -> bool {
+fn is_pulled(mem: &[i64], p: Point2d) -> bool {
     let mut state_a = State::new("A", mem);
     state_a.push_input(p.x());
     state_a.push_input(p.y());
@@ -232,7 +232,7 @@ fn is_pulled(mem: &[i64], p: Point2d<i64>) -> bool {
     output.unwrap() == 1
 }
 
-fn square_fits(mem: &[i64], p: Point2d<i64>) -> bool {
+fn square_fits(mem: &[i64], p: Point2d) -> bool {
     let vs = vec![v2d(0, 0), v2d(99, 0), v2d(0, 99), v2d(99, 99)];
     vs.iter().all(|v| is_pulled(&mem, p + v))
 }

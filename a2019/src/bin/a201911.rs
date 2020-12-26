@@ -224,8 +224,8 @@ const BLACK: i64 = 0;
 const WHITE: i64 = 1;
 
 struct Robot {
-    plane: HashMap<Point2d<i64>, i64>,
-    pos: Point2d<i64>,
+    plane: HashMap<Point2d, i64>,
+    pos: Point2d,
     dir: Vec2d,
 }
 impl Robot {

@@ -231,12 +231,12 @@ const BLOCK: i64 = 2;
 const PADDLE: i64 = 3;
 const BALL: i64 = 4;
 
-struct Board(HashMap<Point2d<i64>, i64>);
+struct Board(HashMap<Point2d, i64>);
 impl Board {
     fn new() -> Board {
         Board(HashMap::new())
     }
-    fn paint(&mut self, p: Point2d<i64>, t: i64) {
+    fn paint(&mut self, p: Point2d, t: i64) {
         self.0.insert(p, t);
     }
     fn tile_count(&self, t: i64) -> usize {

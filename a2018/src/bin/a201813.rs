@@ -66,7 +66,7 @@ impl Direction {
             Direction::S => Direction::W,
         }
     }
-    fn to_v2d(&self) -> Vec2d<i64> {
+    fn to_v2d(&self) -> Vec2d {
         match self {
             Direction::E => v2d(1, 0),
             Direction::N => v2d(0, -1),

@@ -52,7 +52,7 @@ named!(
     )
 );
 
-fn positions(path: Vec<Link>) -> HashMap<Point2d<i64>, i64> {
+fn positions(path: Vec<Link>) -> HashMap<Point2d, i64> {
     let mut ps = HashMap::new();
     let mut p = p2d(0, 0);
     let mut d = 0;
