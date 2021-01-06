@@ -14,15 +14,13 @@ use nom::tag;
 use nom::tuple;
 use nom::ws;
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-struct Vec2d {
-    x: i64,
-    y: i64,
-}
+use gamedim::BBox;
+use gamedim::Point2d;
+use gamedim::Vec2d;
 
 #[derive(Clone, Debug)]
 struct Record {
-    pos: Vec2d,
+    pos: Point2d,
     v: Vec2d,
 }
 
@@ -41,7 +39,7 @@ named!(
             ws!(char!(',')) >>
             y: int64 >>
             char!('>') >>
-            (Vec2d { x, y }))
+            (Vec2d::new(x, y)))
 );
 
 named!(
@@ -51,14 +49,11 @@ named!(
             pos: vec2d >>
             ws!(tag!("velocity=")) >>
             v: vec2d >>
-            (Record { pos, v }))
+            (Record { pos: Point2d::from(pos), v }))
 );
 
-fn pos_at_t(r: &Record, t: i64) -> Vec2d {
-    Vec2d {
-        x: r.pos.x + t * r.v.x,
-        y: r.pos.y + t * r.v.y,
-    }
+fn pos_at_t(r: &Record, t: i64) -> Point2d {
+    r.pos + t * r.v
 }
 
 fn main() {
@@ -82,32 +77,24 @@ fn main() {
     }
 
     let mut t = 0;
-    let mut last_d = i64::MAX;
+    let mut last_area = usize::MAX;
     loop {
-        let mut min_x = i64::MAX;
-        let mut min_y = i64::MAX;
-        let mut max_x = i64::MIN;
-        let mut max_y = i64::MIN;
-        for r in &records {
-            let pt = pos_at_t(r, t);
-            min_x = min_x.min(pt.x);
-            min_y = min_y.min(pt.y);
-            max_x = max_x.max(pt.x);
-            max_y = max_y.max(pt.y);
+        let mut bbox = BBox::from_point(pos_at_t(&records[0], t));
+        for r in records.iter().skip(1) {
+            let p = pos_at_t(r, t);
+            bbox = bbox.extend_to(p);
         }
-        let dx = max_x - min_x;
-        let dy = max_y - min_y;
-        let d = dx.min(dy);
-        if d > last_d {
+        let area = bbox.area();
+        if area > last_area {
             let ps = records
                 .iter()
                 .map(|r| pos_at_t(r, t - 1))
                 .collect::<HashSet<_>>();
-            for y in min_y..=max_y {
-                for x in min_x..=max_x {
+            for y in bbox.y_range() {
+                for x in bbox.x_range() {
                     print!(
                         "{}",
-                        if ps.contains(&Vec2d { x, y }) {
+                        if ps.contains(&Point2d::new(x, y)) {
                             "#"
                         } else {
                             "."
@@ -118,7 +105,7 @@ fn main() {
             }
             break;
         }
-        last_d = d;
+        last_area = bbox.area();
 
         t += 1;
     }
