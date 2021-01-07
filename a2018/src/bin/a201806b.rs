@@ -8,25 +8,16 @@ use nom::map_res;
 use nom::named;
 use nom::ws;
 
-#[derive(Clone, Copy, Debug)]
-struct Point {
-    x: i32,
-    y: i32,
-}
+use gamedim::p2d;
+use gamedim::Point2d;
 
-impl Point {
-    fn distance(&self, p1: &Point) -> i32 {
-        (p1.x - self.x).abs() + (p1.y - self.y).abs()
-    }
-}
-
-named!(int32<&str, i32>,
+named!(int<&str, i64>,
     map_res!(digit, FromStr::from_str)
 );
 
 named!(
-    position<&str, Point>,
-    do_parse!(x: int32 >> ws!(char!(',')) >> y: int32 >> (Point { x, y }))
+    position<&str, Point2d>,
+    do_parse!(x: int >> ws!(char!(',')) >> y: int >> (p2d(x, y)))
 );
 
 fn main() {
@@ -53,8 +44,8 @@ fn main() {
         for y in 0..1000 {
             let total_distance = positions
                 .iter()
-                .map(|p| p.distance(&Point { x, y }))
-                .sum::<i32>();
+                .map(|p| p.distance_l1(p2d(x, y)))
+                .sum::<i64>();
             if total_distance < 10000 {
                 count += 1;
             }
