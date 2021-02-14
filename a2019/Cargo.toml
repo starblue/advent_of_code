@@ -10,4 +10,4 @@ nom = "4.1.1"
 num = "0.2.0"
 num-integer = "0.1.41"
 rand = "0.8.1"
-gamedim = { path = "../../gamedim", version = "0.1.0" }
+gamedim = { path = "../../gamedim", version = "0.2.0" }
