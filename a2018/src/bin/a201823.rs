@@ -41,11 +41,6 @@ impl fmt::Display for Nanobot {
         )
     }
 }
-impl Nanobot {
-    fn in_range(&self, p: Point3d) -> bool {
-        manhatten_distance(self.pos, p) <= self.r
-    }
-}
 
 #[derive(Clone, Debug)]
 enum Error {}
