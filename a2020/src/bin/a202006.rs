@@ -2,16 +2,16 @@ use std::collections::HashSet;
 use std::io;
 use std::io::Read;
 
-use nom::alpha;
+use nom::character::complete::alpha1;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map;
 use nom::named;
 use nom::recognize;
 
 named!(answers<&str, String>,
-    map!(recognize!(alpha), String::from)
+    map!(recognize!(alpha1), String::from)
 );
 named!(person<&str, String>,
     do_parse!(

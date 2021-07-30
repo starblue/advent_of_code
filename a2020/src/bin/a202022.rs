@@ -6,12 +6,12 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::digit;
+use nom::character::complete::digit1;
 use nom::do_parse;
-use nom::line_ending;
+use nom::character::complete::line_ending;
 use nom::map_res;
 use nom::named;
-use nom::separated_nonempty_list;
+use nom::separated_list1;
 use nom::tag;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -200,11 +200,11 @@ impl Game {
 }
 
 named!(int<&str, usize>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(deck<&str, Deck>,
     do_parse!(
-        cards: separated_nonempty_list!(line_ending, int) >>
+        cards: separated_list1!(line_ending, int) >>
         line_ending >>
             (Deck { cards: cards.into() })
     )

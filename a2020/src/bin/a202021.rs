@@ -7,14 +7,14 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alpha;
+use nom::character::complete::alpha1;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map;
 use nom::named;
 use nom::recognize;
-use nom::separated_nonempty_list;
+use nom::separated_list1;
 use nom::tag;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -81,7 +81,7 @@ impl fmt::Display for Food {
 }
 
 named!(name<&str, String>,
-    map!(recognize!(alpha), String::from)
+    map!(recognize!(alpha1), String::from)
 );
 
 named!(ingredient<&str, Ingredient>,
@@ -92,7 +92,7 @@ named!(ingredient<&str, Ingredient>,
 );
 named!(ingredients<&str, IngredientList>,
     do_parse!(
-        is: separated_nonempty_list!(tag!(" "), ingredient) >>
+        is: separated_list1!(tag!(" "), ingredient) >>
             (IngredientList(is))
     )
 );
@@ -105,7 +105,7 @@ named!(allergen<&str, Allergen>,
 );
 named!(allergens<&str, AllergenList>,
     do_parse!(
-        is: separated_nonempty_list!(tag!(", "), allergen) >>
+        is: separated_list1!(tag!(", "), allergen) >>
             (AllergenList(is))
     )
 );

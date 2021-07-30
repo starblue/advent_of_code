@@ -5,7 +5,12 @@ use std::io::Read;
 use std::iter::repeat;
 use std::iter::repeat_with;
 
-use nom::*;
+use nom::alt;
+use nom::char;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::named;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct State {

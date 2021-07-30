@@ -7,9 +7,9 @@ use std::io::Read;
 
 use nom::alt;
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map_res;
 use nom::named;
@@ -53,7 +53,7 @@ named!(int64<&str, i64>,
                     char!('+') |
                     char!('-')
                 ),
-                digit
+                digit1
             )
         ),
         FromStr::from_str

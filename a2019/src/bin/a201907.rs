@@ -3,16 +3,24 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::char;
+use nom::character::complete::digit1;
+use nom::map_res;
+use nom::named;
+use nom::opt;
+use nom::recognize;
+use nom::separated_list1;
+use nom::tag;
+use nom::tuple;
 
 named!(
     int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit)), FromStr::from_str)
+    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
 );
 
 named!(
     input<&str, Vec<i64>>,
-    separated_list!(tag!(","), int64)
+    separated_list1!(tag!(","), int64)
 );
 
 #[derive(Clone, Debug)]

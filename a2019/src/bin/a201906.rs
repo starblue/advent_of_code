@@ -2,7 +2,14 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Read;
 
-use nom::*;
+use nom::char;
+use nom::character::complete::alphanumeric1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::map;
+use nom::named;
+use nom::recognize;
 
 #[derive(Clone, Copy, Debug)]
 struct Link {

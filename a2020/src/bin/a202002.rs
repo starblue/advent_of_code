@@ -4,15 +4,15 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::anychar;
-use nom::digit;
+use nom::character::complete::anychar;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::character::complete::not_line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map;
 use nom::map_res;
 use nom::named;
-use nom::not_line_ending;
 use nom::recognize;
 use nom::tag;
 
@@ -47,7 +47,7 @@ impl fmt::Display for Record {
 }
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(password<&str, String>,

@@ -3,15 +3,14 @@ use std::io::Read;
 use std::str::FromStr;
 
 use nom::char;
-use nom::dbg;
-use nom::digit;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::character::complete::multispace0;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map_res;
 use nom::named;
 use nom::tag;
-use nom::ws;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Op {
@@ -95,19 +94,28 @@ struct Sample {
 enum Error {}
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(regs<&str, Regs>,
     do_parse!(
-        ws!(char!('[')) >>
+        multispace0 >>
+        char!('[') >>
+        multispace0 >>
         r0: int64 >>
-        ws!(tag!(",")) >>
+        multispace0 >>
+        tag!(",") >>
+        multispace0 >>
         r1: int64 >>
-        ws!(tag!(",")) >>
+        multispace0 >>
+        tag!(",") >>
+        multispace0 >>
         r2: int64 >>
-        ws!(tag!(",")) >>
+        multispace0 >>
+        tag!(",") >>
+        multispace0 >>
         r3: int64 >>
+        multispace0 >>
         char!(']') >>
             (Regs(vec![r0, r1, r2, r3]))
     )
@@ -128,24 +136,28 @@ named!(instr<&str, Instr>,
 
 named!(sample<&str, Sample>,
     do_parse!(
-        ws!(tag!("Before:")) >>
+        multispace0 >>
+        tag!("Before:") >>
+        multispace0 >>
         before: regs >> line_ending >>
         instr: instr >> line_ending >>
-        ws!(tag!("After:")) >>
+        multispace0 >>
+        tag!("After:") >>
+        multispace0 >>
         after: regs >> line_ending >>
             (Sample { before, instr, after })
     )
 );
 
 named!(input<&str, (Vec<Sample>, Vec<Instr>)>,
-    dbg!(do_parse!(
+    do_parse!(
         samples: many1!(sample) >>
         many1!(line_ending) >>
         instrs: many1!(
             do_parse!(instr: instr >> line_ending >> (instr))
         ) >>
             ((samples, instrs))
-    ))
+    )
 );
 
 fn main() {

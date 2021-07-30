@@ -5,7 +5,17 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::char;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::map_res;
+use nom::named;
+use nom::opt;
+use nom::recognize;
+use nom::tag;
+use nom::tuple;
 
 use num::integer::lcm;
 
@@ -17,7 +27,7 @@ use gamedim::Vector;
 
 named!(
     int<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit)), FromStr::from_str)
+    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
 );
 
 named!(

@@ -4,7 +4,15 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::map_res;
+use nom::named;
+use nom::tag;
+use nom::value;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Op {
@@ -109,7 +117,7 @@ impl fmt::Display for Instr {
 enum Error {}
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(ip_decl<&str, i64>,

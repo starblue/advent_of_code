@@ -6,17 +6,17 @@ use std::io;
 use std::io::Read;
 use std::rc::Rc;
 
-use nom::alpha;
 use nom::alt;
 use nom::char;
-use nom::digit;
+use nom::character::complete::alpha1;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map_res;
 use nom::named;
 use nom::none_of;
-use nom::separated_nonempty_list;
+use nom::separated_list1;
 use nom::tag;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -148,7 +148,7 @@ impl Parser {
 }
 
 named!(int<&str, usize>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(literal<&str, Expr>,
     do_parse!(
@@ -160,7 +160,7 @@ named!(literal<&str, Expr>,
 );
 named!(sequence<&str, Expr>,
     do_parse!(
-        seq: separated_nonempty_list!(tag!(" "), int) >>
+        seq: separated_list1!(tag!(" "), int) >>
             (Expr::from_sequence(
                 seq.into_iter()
                     .map(|n| Expr::Rule(n))
@@ -170,7 +170,7 @@ named!(sequence<&str, Expr>,
 );
 named!(alternatives<&str, Expr>,
     do_parse!(
-        alts: separated_nonempty_list!(tag!(" | "), sequence) >>
+        alts: separated_list1!(tag!(" | "), sequence) >>
             (Expr::from_alternatives(alts))
     )
 );
@@ -191,7 +191,7 @@ named!(rule<&str, Rule>,
 );
 named!(message<&str, String>,
     do_parse!(
-        msg: alpha >>
+        msg: alpha1 >>
         line_ending >>
             (String::from(msg))
     )

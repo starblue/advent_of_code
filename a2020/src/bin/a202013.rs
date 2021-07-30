@@ -4,11 +4,19 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::map_res;
+use nom::named;
+use nom::separated_list1;
+use nom::tag;
+use nom::value;
 
 named!(
     int<&str, i128>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(
     bus<&str, Option<i128>>,
@@ -24,7 +32,7 @@ named!(
     do_parse!(
         earliest: int >>
         line_ending >>
-        buses: separated_list!(tag!(","), bus) >>
+        buses: separated_list1!(tag!(","), bus) >>
         line_ending >> ((earliest, buses))
     )
 );

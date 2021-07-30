@@ -3,7 +3,14 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::map_res;
+use nom::named;
+use nom::tag;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Vein {
@@ -17,7 +24,7 @@ struct Vein {
 enum Error {}
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(vein<&str, Vein>,

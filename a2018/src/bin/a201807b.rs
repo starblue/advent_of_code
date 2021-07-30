@@ -3,7 +3,7 @@ use std::collections::BinaryHeap;
 use std::collections::HashSet;
 use std::io;
 
-use nom::alpha;
+use nom::character::complete::alpha1;
 use nom::do_parse;
 use nom::named;
 use nom::tag;
@@ -14,9 +14,9 @@ struct Before(char, char);
 named!(record<&str, Before>,
        do_parse!(
            tag!("Step ")
-               >>step0: alpha
+               >>step0: alpha1
                >> tag!(" must be finished before step ")
-               >>step1: alpha
+               >>step1: alpha1
                >> tag!(" can begin.")
                >> (Before(step0.chars().next().unwrap(), step1.chars().next().unwrap()))
        )

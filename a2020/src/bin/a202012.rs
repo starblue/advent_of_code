@@ -9,9 +9,9 @@ use gamedim::v2d;
 use gamedim::Matrix2d;
 
 use nom::alt;
-use nom::digit;
+use nom::character::complete::digit1;
 use nom::do_parse;
-use nom::line_ending;
+use nom::character::complete::line_ending;
 use nom::many1;
 use nom::map_res;
 use nom::named;
@@ -59,7 +59,7 @@ impl fmt::Display for Instruction {
 }
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(action<&str, Action>,
     alt!(

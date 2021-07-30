@@ -6,18 +6,18 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alpha;
 use nom::alt;
-use nom::digit;
+use nom::character::complete::alpha1;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::map;
 use nom::map_res;
 use nom::named;
 use nom::opt;
 use nom::recognize;
-use nom::separated_nonempty_list;
+use nom::separated_list1;
 use nom::tag;
 use nom::value;
 
@@ -69,10 +69,10 @@ impl fmt::Display for Rule {
 }
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(word<&str, String>,
-    map!(recognize!(alpha), String::from)
+    map!(recognize!(alpha1), String::from)
 );
 
 named!(color<&str, Color>,
@@ -94,7 +94,7 @@ named!(content_item<&str, ContentItem>,
 named!(contents<&str, Vec<ContentItem>>,
     alt!(
         value!(Vec::new(), tag!("no other bags")) |
-        separated_nonempty_list!(tag!(", "), content_item)
+        separated_list1!(tag!(", "), content_item)
     )
 );
 named!(rule<&str, Rule>,

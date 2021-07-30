@@ -4,7 +4,9 @@ use std::io;
 use std::str::FromStr;
 
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
+use nom::character::complete::multispace0;
+use nom::character::complete::multispace1;
 use nom::do_parse;
 use nom::map_res;
 use nom::named;
@@ -12,7 +14,6 @@ use nom::opt;
 use nom::recognize;
 use nom::tag;
 use nom::tuple;
-use nom::ws;
 
 use gamedim::BBox;
 use gamedim::Point2d;
@@ -28,27 +29,34 @@ struct Record {
 enum Error {}
 
 named!(int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit)), FromStr::from_str)
+    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
 );
 
 named!(
     vec2d<&str, Vec2d>,
     do_parse!(
-        ws!(char!('<')) >>
-            x: int64 >>
-            ws!(char!(',')) >>
-            y: int64 >>
-            char!('>') >>
+        char!('<') >>
+        multispace0 >>
+        x: int64 >>
+        multispace0 >>
+        char!(',') >>
+        multispace0 >>
+        y: int64 >>
+        multispace0 >>
+        char!('>') >>
             (Vec2d::new(x, y)))
 );
 
 named!(
     record<&str, Record>,
     do_parse!(
-        ws!(tag!("position=")) >>
-            pos: vec2d >>
-            ws!(tag!("velocity=")) >>
-            v: vec2d >>
+        tag!("position=") >>
+        multispace0 >>
+        pos: vec2d >>
+        multispace1 >>
+        tag!("velocity=") >>
+        multispace0 >>
+        v: vec2d >>
             (Record { pos: Point2d::from(pos), v }))
 );
 

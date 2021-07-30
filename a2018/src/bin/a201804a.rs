@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use nom::alt;
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
 use nom::do_parse;
 use nom::map_res;
 use nom::named;
@@ -38,7 +38,7 @@ struct Record {
 enum Error {}
 
 named!(int32<&str, i32>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(timestamp<&str, Timestamp>,

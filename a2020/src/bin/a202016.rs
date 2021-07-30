@@ -6,16 +6,16 @@ use std::io;
 use std::io::Read;
 
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
 use nom::do_parse;
-use nom::line_ending;
+use nom::character::complete::line_ending;
 use nom::many1;
 use nom::map;
 use nom::map_res;
 use nom::named;
 use nom::none_of;
 use nom::recognize;
-use nom::separated_nonempty_list;
+use nom::separated_list1;
 use nom::tag;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -109,7 +109,7 @@ named!(field<&str, String>,
     map!(recognize!(many1!(none_of!(":"))), String::from)
 );
 named!(int<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(condition<&str, Condition>,
     do_parse!(
@@ -132,7 +132,7 @@ named!(rule<&str, Rule>,
 );
 named!(ticket<&str, Ticket>,
     do_parse!(
-        ns: separated_nonempty_list!(char!(','), int) >>
+        ns: separated_list1!(char!(','), int) >>
         line_ending >>
             (Ticket(ns))
     )

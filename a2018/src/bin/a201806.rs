@@ -3,22 +3,27 @@ use std::iter::repeat;
 use std::str::FromStr;
 
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
+use nom::character::complete::multispace1;
 use nom::do_parse;
 use nom::map_res;
 use nom::named;
-use nom::ws;
 
 use gamedim::p2d;
 use gamedim::Point2d;
 
 named!(int<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(
     position<&str, Point2d>,
-    do_parse!(x: int >> ws!(char!(',')) >> y: int >> (p2d(x, y)))
+    do_parse!(
+        x: int >>
+        char!(',') >>
+        multispace1 >>
+        y: int >>
+            (p2d(x, y)))
 );
 
 fn main() {

@@ -110,7 +110,7 @@ use std::collections::HashSet;
 // enum Error {}
 
 // named!(int64<&str, i64>,
-//     map_res!(digit, FromStr::from_str)
+//     map_res!(digit1, FromStr::from_str)
 // );
 
 // named!(ip_decl<&str, i64>,

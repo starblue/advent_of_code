@@ -7,9 +7,9 @@ use std::rc::Rc;
 
 use nom::alt;
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
 use nom::do_parse;
-use nom::line_ending;
+use nom::character::complete::line_ending;
 use nom::many0;
 use nom::many1;
 use nom::map_res;
@@ -109,7 +109,7 @@ impl fmt::Display for Expr {
 }
 
 named!(int<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 named!(op<&str, Op>,
     alt!(

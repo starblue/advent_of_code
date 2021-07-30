@@ -5,7 +5,21 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::call;
+use nom::char;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::map_res;
+use nom::named;
+use nom::named_args;
+use nom::opt;
+use nom::recognize;
+use nom::separated_list1;
+use nom::tag;
+use nom::tuple;
+use nom::value;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Side {
@@ -110,7 +124,7 @@ enum Error {}
 
 named!(
     int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit)), FromStr::from_str)
+    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
 );
 
 named!(attack_type<&str, AttackType>,
@@ -126,7 +140,7 @@ named!(attack_type<&str, AttackType>,
 named!(
     attack_types<&str, HashSet<AttackType>>,
     do_parse!(
-        attack_types: separated_list!(tag!(", "), attack_type) >>
+        attack_types: separated_list1!(tag!(", "), attack_type) >>
             (attack_types.into_iter().collect::<HashSet<_>>())
     )
 );
@@ -204,7 +218,7 @@ named_args!(
 
 named_args!(
     army(side: Side)<&str, Vec<Group>>,
-    separated_list!(line_ending, call!(group, side))
+    separated_list1!(line_ending, call!(group, side))
 );
 
 named!(

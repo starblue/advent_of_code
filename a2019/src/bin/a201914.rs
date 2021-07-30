@@ -4,7 +4,20 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::char;
+use nom::character::complete::alpha1;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::many1;
+use nom::map;
+use nom::map_res;
+use nom::named;
+use nom::opt;
+use nom::recognize;
+use nom::separated_list1;
+use nom::tag;
+use nom::tuple;
 
 #[derive(Clone, Debug)]
 struct Quantity {
@@ -51,7 +64,7 @@ impl fmt::Display for Reaction {
 
 named!(
     int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit)), FromStr::from_str)
+    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
 );
 
 named!(chemical<&str, String>,
@@ -68,7 +81,7 @@ named!(quantity<&str, Quantity>,
 
 named!(reaction<&str, Reaction>,
     do_parse!(
-        ins: separated_list!(tag!(", "), quantity) >>
+        ins: separated_list1!(tag!(", "), quantity) >>
         tag!(" => ") >>
         out: quantity >>
         line_ending >> (Reaction { ins, out })

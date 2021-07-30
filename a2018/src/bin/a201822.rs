@@ -5,7 +5,12 @@ use std::io::Read;
 use std::rc::Rc;
 use std::str::FromStr;
 
-use nom::*;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::map_res;
+use nom::named;
+use nom::tag;
 
 use pathfinding::prelude::astar;
 
@@ -19,7 +24,7 @@ use gamedim::Vec2d;
 enum Error {}
 
 named!(int64<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(input<&str, (i64, Point2d)>,

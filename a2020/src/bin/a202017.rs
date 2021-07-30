@@ -6,8 +6,8 @@ use std::io::Read;
 
 use nom::alt;
 use nom::char;
+use nom::character::complete::line_ending;
 use nom::do_parse;
-use nom::line_ending;
 use nom::many1;
 use nom::named;
 use nom::value;

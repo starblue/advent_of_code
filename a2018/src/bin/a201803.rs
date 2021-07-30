@@ -3,12 +3,12 @@ use std::iter::repeat;
 use std::str::FromStr;
 
 use nom::char;
-use nom::digit;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::character::complete::multispace1;
 use nom::do_parse;
-use nom::line_ending;
 use nom::map_res;
 use nom::named;
-use nom::ws;
 
 use gamedim::p2d;
 use gamedim::v2d;
@@ -28,7 +28,7 @@ struct Record {
 enum Error {}
 
 named!(int<&str, i64>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(
@@ -49,13 +49,16 @@ named!(
 named!(
     record<&str, Record>,
     do_parse!(
-        id: id
-            >> ws!(char!('@'))
-            >> pos: position
-            >> ws!(char!(':'))
-            >> size: size
-            >> line_ending
-            >> ({
+        id: id >>
+        multispace1 >>
+        char!('@') >>
+        multispace1 >>
+        pos: position >>
+        char!(':') >>
+        multispace1 >>
+        size: size >>
+        line_ending >>
+            ({
                 let bbox = BBox::new(pos, size);
                 Record { id, bbox }
             })

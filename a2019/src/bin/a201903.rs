@@ -4,7 +4,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::*;
+use nom::alt;
+use nom::char;
+use nom::character::complete::digit1;
+use nom::character::complete::line_ending;
+use nom::do_parse;
+use nom::map_res;
+use nom::named;
+use nom::separated_list1;
+use nom::tag;
+use nom::value;
 
 use gamedim::p2d;
 use gamedim::v2d;
@@ -19,7 +28,7 @@ struct Link {
 
 named!(
     uint<&str, usize>,
-    map_res!(digit, FromStr::from_str)
+    map_res!(digit1, FromStr::from_str)
 );
 
 named!(dir<&str, Vec2d>,
@@ -40,7 +49,7 @@ named!(link<&str, Link>,
 
 named!(
     path<&str, Vec<Link>>,
-    separated_list!(tag!(","), link)
+    separated_list1!(tag!(","), link)
 );
 
 named!(
