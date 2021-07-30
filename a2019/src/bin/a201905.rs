@@ -149,7 +149,7 @@ fn main() {
     let state = result.unwrap().1;
 
     let result_a = run(state.clone(), vec![1]);
-    let result_b = run(state.clone(), vec![5]);
+    let result_b = run(state, vec![5]);
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

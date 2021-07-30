@@ -60,7 +60,7 @@ fn main() {
 
     let skip = n;
 
-    let data = input.clone();
+    let data = input;
     let i1 = 0;
     let i2 = 1;
 

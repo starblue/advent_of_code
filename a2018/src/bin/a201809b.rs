@@ -34,7 +34,7 @@ fn main() {
     io::stdin().read_line(&mut line).expect("I/O error");
 
     // parse line
-    let result = config(&line.trim_end());
+    let result = config(line.trim_end());
     //println!("{:?}", result);
 
     let config = result.unwrap().1;

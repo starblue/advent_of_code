@@ -22,8 +22,8 @@ use nom::value;
 
 #[derive(Clone, Copy, Debug)]
 enum Unit {
-    CM,
-    INCH,
+    Cm,
+    Inch,
 }
 #[derive(Clone, Copy, Debug)]
 struct Height {
@@ -45,8 +45,8 @@ named!(year<&str, i64>,
 
 named!(unit<&str, Unit>,
     alt!(
-        value!(Unit::CM, tag!("cm")) |
-        value!(Unit::INCH, tag!("in"))
+        value!(Unit::Cm, tag!("cm")) |
+        value!(Unit::Inch, tag!("in"))
     )
 );
 named!(height<&str, Height>,
@@ -95,53 +95,53 @@ named!(pid<&str, String>,
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 enum Field {
-    BYR,
-    IYR,
-    EYR,
-    HGT,
-    HCL,
-    ECL,
-    PID,
-    CID,
+    Byr,
+    Iyr,
+    Eyr,
+    Hgt,
+    Hcl,
+    Ecl,
+    Pid,
+    Cid,
 }
 impl Field {
     fn is_valid_data(&self, data: &str) -> bool {
         match self {
-            Field::BYR => {
+            Field::Byr => {
                 let result = year(data);
                 result.map_or(false, |(r, y)| r.is_empty() && 1920 <= y && y <= 2002)
             }
-            Field::IYR => {
+            Field::Iyr => {
                 let result = year(data);
                 result.map_or(false, |(r, y)| r.is_empty() && 2010 <= y && y <= 2020)
             }
-            Field::EYR => {
+            Field::Eyr => {
                 let result = year(data);
                 result.map_or(false, |(r, y)| r.is_empty() && 2020 <= y && y <= 2030)
             }
-            Field::HGT => {
+            Field::Hgt => {
                 let result = height(data);
                 result.map_or(false, |(r, h)| {
                     r.is_empty()
                         && match h.unit {
-                            Unit::CM => 150 <= h.value && h.value <= 193,
-                            Unit::INCH => 59 <= h.value && h.value <= 76,
+                            Unit::Cm => 150 <= h.value && h.value <= 193,
+                            Unit::Inch => 59 <= h.value && h.value <= 76,
                         }
                 })
             }
-            Field::HCL => {
+            Field::Hcl => {
                 let result = hcl(data);
                 result.map_or(false, |(r, _)| r.is_empty())
             }
-            Field::ECL => {
+            Field::Ecl => {
                 let result = ecl(data);
                 result.map_or(false, |(r, _)| r.is_empty())
             }
-            Field::PID => {
+            Field::Pid => {
                 let result = pid(data);
                 result.map_or(false, |(r, _)| r.is_empty())
             }
-            Field::CID => true,
+            Field::Cid => true,
         }
     }
 }
@@ -151,26 +151,26 @@ struct Passport(HashMap<Field, String>);
 impl Passport {
     fn is_valid_a(&self) -> bool {
         vec![
-            Field::BYR,
-            Field::IYR,
-            Field::EYR,
-            Field::HGT,
-            Field::HCL,
-            Field::ECL,
-            Field::PID,
+            Field::Byr,
+            Field::Iyr,
+            Field::Eyr,
+            Field::Hgt,
+            Field::Hcl,
+            Field::Ecl,
+            Field::Pid,
         ]
         .iter()
         .all(|f| self.0.contains_key(f))
     }
     fn is_valid_b(&self) -> bool {
         vec![
-            Field::BYR,
-            Field::IYR,
-            Field::EYR,
-            Field::HGT,
-            Field::HCL,
-            Field::ECL,
-            Field::PID,
+            Field::Byr,
+            Field::Iyr,
+            Field::Eyr,
+            Field::Hgt,
+            Field::Hcl,
+            Field::Ecl,
+            Field::Pid,
         ]
         .iter()
         .all(|f| self.0.contains_key(f) && f.is_valid_data(&self.0[f]))
@@ -179,14 +179,14 @@ impl Passport {
 
 named!(field<&str, Field>,
     alt!(
-        value!(Field::BYR, tag!("byr")) |
-        value!(Field::IYR, tag!("iyr")) |
-        value!(Field::EYR, tag!("eyr")) |
-        value!(Field::HGT, tag!("hgt")) |
-        value!(Field::HCL, tag!("hcl")) |
-        value!(Field::ECL, tag!("ecl")) |
-        value!(Field::PID, tag!("pid")) |
-        value!(Field::CID, tag!("cid"))
+        value!(Field::Byr, tag!("byr")) |
+        value!(Field::Iyr, tag!("iyr")) |
+        value!(Field::Eyr, tag!("eyr")) |
+        value!(Field::Hgt, tag!("hgt")) |
+        value!(Field::Hcl, tag!("hcl")) |
+        value!(Field::Ecl, tag!("ecl")) |
+        value!(Field::Pid, tag!("pid")) |
+        value!(Field::Cid, tag!("cid"))
     )
 );
 
@@ -247,12 +247,12 @@ mod tests {
 
     #[test]
     fn test_field_byr() {
-        assert_eq!(Field::BYR, field("byr").unwrap().1);
+        assert_eq!(Field::Byr, field("byr").unwrap().1);
     }
 
     #[test]
     fn test_field_hcl() {
-        assert_eq!(Field::HCL, field("hcl").unwrap().1);
+        assert_eq!(Field::Hcl, field("hcl").unwrap().1);
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod tests {
     #[test]
     fn test_pair_0() {
         assert_eq!(
-            (Field::HCL, "5d90f0".to_string()),
+            (Field::Hcl, "5d90f0".to_string()),
             pair("hcl:5d90f0 ").unwrap().1
         );
     }

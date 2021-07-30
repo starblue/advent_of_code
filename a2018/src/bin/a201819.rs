@@ -16,22 +16,22 @@ use nom::value;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Op {
-    ADDI,
-    ADDR,
-    MULI,
-    MULR,
-    BANI,
-    BANR,
-    BORI,
-    BORR,
-    SETI,
-    SETR,
-    GTIR,
-    GTRI,
-    GTRR,
-    EQIR,
-    EQRI,
-    EQRR,
+    Addi,
+    Addr,
+    Muli,
+    Mulr,
+    Bani,
+    Banr,
+    Bori,
+    Borr,
+    Seti,
+    Setr,
+    Gtir,
+    Gtri,
+    Gtrr,
+    Eqir,
+    Eqri,
+    Eqrr,
 }
 
 impl Op {
@@ -41,22 +41,22 @@ impl Op {
         let bu = b as usize;
         let cu = c as usize;
         match self {
-            Op::ADDI => rs[cu] = rs[au] + b,
-            Op::ADDR => rs[cu] = rs[au] + rs[bu],
-            Op::MULI => rs[cu] = rs[au] * b,
-            Op::MULR => rs[cu] = rs[au] * rs[bu],
-            Op::BANI => rs[cu] = rs[au] & b,
-            Op::BANR => rs[cu] = rs[au] & rs[bu],
-            Op::BORI => rs[cu] = rs[au] | b,
-            Op::BORR => rs[cu] = rs[au] | rs[bu],
-            Op::SETI => rs[cu] = a,
-            Op::SETR => rs[cu] = rs[au],
-            Op::GTIR => rs[cu] = if a > rs[bu] { 1 } else { 0 },
-            Op::GTRI => rs[cu] = if rs[au] > b { 1 } else { 0 },
-            Op::GTRR => rs[cu] = if rs[au] > rs[bu] { 1 } else { 0 },
-            Op::EQIR => rs[cu] = if a == rs[bu] { 1 } else { 0 },
-            Op::EQRI => rs[cu] = if rs[au] == b { 1 } else { 0 },
-            Op::EQRR => rs[cu] = if rs[au] == rs[bu] { 1 } else { 0 },
+            Op::Addi => rs[cu] = rs[au] + b,
+            Op::Addr => rs[cu] = rs[au] + rs[bu],
+            Op::Muli => rs[cu] = rs[au] * b,
+            Op::Mulr => rs[cu] = rs[au] * rs[bu],
+            Op::Bani => rs[cu] = rs[au] & b,
+            Op::Banr => rs[cu] = rs[au] & rs[bu],
+            Op::Bori => rs[cu] = rs[au] | b,
+            Op::Borr => rs[cu] = rs[au] | rs[bu],
+            Op::Seti => rs[cu] = a,
+            Op::Setr => rs[cu] = rs[au],
+            Op::Gtir => rs[cu] = if a > rs[bu] { 1 } else { 0 },
+            Op::Gtri => rs[cu] = if rs[au] > b { 1 } else { 0 },
+            Op::Gtrr => rs[cu] = if rs[au] > rs[bu] { 1 } else { 0 },
+            Op::Eqir => rs[cu] = if a == rs[bu] { 1 } else { 0 },
+            Op::Eqri => rs[cu] = if rs[au] == b { 1 } else { 0 },
+            Op::Eqrr => rs[cu] = if rs[au] == rs[bu] { 1 } else { 0 },
         }
     }
 }
@@ -130,22 +130,22 @@ named!(ip_decl<&str, i64>,
 
 named!(op<&str, Op>,
     alt!(
-        value!(Op::ADDI, tag!("addi")) |
-        value!(Op::ADDR, tag!("addr")) |
-        value!(Op::MULI, tag!("muli")) |
-        value!(Op::MULR, tag!("mulr")) |
-        value!(Op::BANI, tag!("bani")) |
-        value!(Op::BANR, tag!("banr")) |
-        value!(Op::BORI, tag!("bori")) |
-        value!(Op::BORR, tag!("borr")) |
-        value!(Op::SETI, tag!("seti")) |
-        value!(Op::SETR, tag!("setr")) |
-        value!(Op::GTIR, tag!("gtir")) |
-        value!(Op::GTRI, tag!("gtri")) |
-        value!(Op::GTRR, tag!("gtrr")) |
-        value!(Op::EQIR, tag!("eqir")) |
-        value!(Op::EQRI, tag!("eqri")) |
-        value!(Op::EQRR, tag!("eqrr"))
+        value!(Op::Addi, tag!("addi")) |
+        value!(Op::Addr, tag!("addr")) |
+        value!(Op::Muli, tag!("muli")) |
+        value!(Op::Mulr, tag!("mulr")) |
+        value!(Op::Bani, tag!("bani")) |
+        value!(Op::Banr, tag!("banr")) |
+        value!(Op::Bori, tag!("bori")) |
+        value!(Op::Borr, tag!("borr")) |
+        value!(Op::Seti, tag!("seti")) |
+        value!(Op::Setr, tag!("setr")) |
+        value!(Op::Gtir, tag!("gtir")) |
+        value!(Op::Gtri, tag!("gtri")) |
+        value!(Op::Gtrr, tag!("gtrr")) |
+        value!(Op::Eqir, tag!("eqir")) |
+        value!(Op::Eqri, tag!("eqri")) |
+        value!(Op::Eqrr, tag!("eqrr"))
     )
 );
 

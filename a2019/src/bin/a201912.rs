@@ -55,7 +55,7 @@ struct State {
     vs: Vec<Vec3d>,
 }
 impl State {
-    fn new(ps: &Vec<Point3d>) -> State {
+    fn new(ps: &[Point3d]) -> State {
         State {
             ps: ps.to_owned(),
             vs: repeat(v3d(0, 0, 0)).take(ps.len()).collect::<Vec<_>>(),
@@ -112,7 +112,7 @@ struct State1 {
     vs: Vec<i64>,
 }
 impl State1 {
-    fn new(ps: &Vec<i64>) -> State1 {
+    fn new(ps: &[i64]) -> State1 {
         State1 {
             ps: ps.to_owned(),
             vs: repeat(0).take(ps.len()).collect::<Vec<_>>(),

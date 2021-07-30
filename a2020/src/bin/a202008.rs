@@ -20,16 +20,16 @@ use nom::value;
 
 #[derive(Clone, Copy, Debug)]
 enum Opcode {
-    ACC,
-    JMP,
-    NOP,
+    Acc,
+    Jmp,
+    Nop,
 }
 impl fmt::Display for Opcode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Opcode::ACC => write!(f, "acc"),
-            Opcode::JMP => write!(f, "jmp"),
-            Opcode::NOP => write!(f, "nop"),
+            Opcode::Acc => write!(f, "acc"),
+            Opcode::Jmp => write!(f, "jmp"),
+            Opcode::Nop => write!(f, "nop"),
         }
     }
 }
@@ -61,9 +61,9 @@ named!(int64<&str, i64>,
 );
 named!(opcode<&str, Opcode>,
     alt!(
-        value!(Opcode::ACC, tag!("acc")) |
-        value!(Opcode::JMP, tag!("jmp")) |
-        value!(Opcode::NOP, tag!("nop"))
+        value!(Opcode::Acc, tag!("acc")) |
+        value!(Opcode::Jmp, tag!("jmp")) |
+        value!(Opcode::Nop, tag!("nop"))
     )
 );
 named!(instruction<&str, Instruction>,
@@ -96,14 +96,14 @@ impl State {
     }
     fn execute(&mut self, instruction: Instruction) {
         match instruction.opcode {
-            Opcode::ACC => {
+            Opcode::Acc => {
                 self.acc += instruction.arg;
                 self.ip += 1;
             }
-            Opcode::JMP => {
+            Opcode::Jmp => {
                 self.ip += instruction.arg;
             }
-            Opcode::NOP => {
+            Opcode::Nop => {
                 self.ip += 1;
             }
         }
@@ -155,9 +155,9 @@ fn main() {
     for i in 0..instructions.len() {
         fn modify(instruction: Instruction) -> Instruction {
             let opcode = match instruction.opcode {
-                Opcode::ACC => Opcode::ACC,
-                Opcode::JMP => Opcode::NOP,
-                Opcode::NOP => Opcode::JMP,
+                Opcode::Acc => Opcode::Acc,
+                Opcode::Jmp => Opcode::Nop,
+                Opcode::Nop => Opcode::Jmp,
             };
             let arg = instruction.arg;
             Instruction { opcode, arg }

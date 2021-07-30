@@ -65,7 +65,7 @@ fn main() {
     let needle = vec![2, 6, 0, 3, 2, 1];
     let input = vec![3, 7];
 
-    let data = input.clone();
+    let data = input;
     let i1 = 0;
     let i2 = 1;
 

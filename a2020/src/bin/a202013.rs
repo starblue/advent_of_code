@@ -127,13 +127,7 @@ fn main() {
     let mrs = buses
         .into_iter()
         .enumerate()
-        .filter_map(|(r, b)| {
-            if let Some(bus) = b {
-                Some(Some((bus, bus - r as i128)))
-            } else {
-                None
-            }
-        })
+        .filter_map(|(r, b)| b.map(|bus| Some((bus, bus - r as i128))))
         .collect::<Vec<_>>();
     let result_b = chinese_remainder_n(&mrs[..]).unwrap().1;
 

@@ -56,7 +56,7 @@ fn main() {
     let mut line = String::new();
     io::stdin().read_line(&mut line).expect("I/O error");
     let data = line
-        .split(" ")
+        .split(' ')
         .map(|s| s.trim().parse::<i32>().unwrap())
         .collect::<Vec<_>>();
 

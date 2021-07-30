@@ -95,7 +95,7 @@ fn main() {
         }
 
         // parse line
-        let result = record(&line.trim_end());
+        let result = record(line.trim_end());
         //println!("{:?}", result);
 
         let r = result.unwrap().1;

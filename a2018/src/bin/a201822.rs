@@ -49,12 +49,19 @@ enum ToolState {
 }
 impl ToolState {
     fn is_allowed_for(&self, region_type: RegionType) -> bool {
-        match (region_type, self) {
-            (RegionType::Rocky, ToolState::Torch | ToolState::ClimbingGear) => true,
-            (RegionType::Wet, ToolState::Neither | ToolState::ClimbingGear) => true,
-            (RegionType::Narrow, ToolState::Neither | ToolState::Torch) => true,
-            _ => false,
-        }
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        matches!(
+            (region_type, self),
+            (
+                RegionType::Rocky,
+                ToolState::Torch | ToolState::ClimbingGear
+            ) | (
+                RegionType::Wet,
+                ToolState::Neither | ToolState::ClimbingGear
+            ) | (
+                RegionType::Narrow,
+                ToolState::Neither | ToolState::Torch)
+        )
     }
 }
 
@@ -62,7 +69,7 @@ type Cost = i64;
 const MOVE_COST: Cost = 1;
 const TOOL_CHANGE_COST: Cost = 7;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 struct Node {
     location: Point2d,
     tool_state: ToolState,

@@ -114,7 +114,7 @@ fn main() {
         }
 
         // parse line
-        let result = rule(&line.trim_end());
+        let result = rule(line.trim_end());
         //println!("{:?}", result);
 
         let rule = result.unwrap().1;
