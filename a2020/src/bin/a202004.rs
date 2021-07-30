@@ -5,8 +5,8 @@ use std::str::FromStr;
 
 use nom::alt;
 use nom::character::complete::digit1;
-use nom::do_parse;
 use nom::character::complete::line_ending;
+use nom::do_parse;
 use nom::many0;
 use nom::many1;
 use nom::many_m_n;

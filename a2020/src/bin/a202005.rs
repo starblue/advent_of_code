@@ -2,8 +2,8 @@ use std::io;
 use std::io::Read;
 
 use nom::alt;
-use nom::do_parse;
 use nom::character::complete::line_ending;
+use nom::do_parse;
 use nom::many1;
 use nom::many_m_n;
 use nom::named;

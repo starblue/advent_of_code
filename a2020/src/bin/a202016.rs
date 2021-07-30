@@ -7,8 +7,8 @@ use std::io::Read;
 
 use nom::char;
 use nom::character::complete::digit1;
-use nom::do_parse;
 use nom::character::complete::line_ending;
+use nom::do_parse;
 use nom::many1;
 use nom::map;
 use nom::map_res;
