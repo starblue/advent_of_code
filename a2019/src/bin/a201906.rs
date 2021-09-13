@@ -11,12 +11,6 @@ use nom::map;
 use nom::named;
 use nom::recognize;
 
-#[derive(Clone, Copy, Debug)]
-struct Link {
-    dir: usize,
-    steps: usize,
-}
-
 named!(object<&str, String>,
     map!(recognize!(many1!(alphanumeric1)), String::from)
 );

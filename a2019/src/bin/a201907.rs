@@ -25,6 +25,7 @@ named!(
 
 #[derive(Clone, Debug)]
 struct State {
+    #[allow(unused)]
     id: String,
     mem: Vec<i64>,
     input: VecDeque<i64>,
