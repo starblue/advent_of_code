@@ -19,11 +19,11 @@ use nom::tuple;
 
 use num::integer::lcm;
 
-use gamedim::p3d;
-use gamedim::v3d;
-use gamedim::Point3d;
-use gamedim::Vec3d;
-use gamedim::Vector;
+use lowdim::p3d;
+use lowdim::v3d;
+use lowdim::Point3d;
+use lowdim::Vec3d;
+use lowdim::Vector;
 
 named!(
     int<&str, i64>,

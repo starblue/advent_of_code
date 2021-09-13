@@ -11,9 +11,9 @@ use nom::value;
 
 use num::integer::gcd;
 
-use gamedim::p2d;
-use gamedim::v2d;
-use gamedim::Vec2d;
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Vec2d;
 
 named!(cell<&str, bool>,
     alt!(

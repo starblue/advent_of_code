@@ -14,8 +14,8 @@ use nom::separated_list1;
 use nom::tag;
 use nom::tuple;
 
-use gamedim::p2d;
-use gamedim::Point2d;
+use lowdim::p2d;
+use lowdim::Point2d;
 
 named!(
     int64<&str, i64>,

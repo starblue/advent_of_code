@@ -10,10 +10,10 @@ use nom::many1;
 use nom::named;
 use nom::value;
 
-use gamedim::p2d;
-use gamedim::v2d;
-use gamedim::Array2d;
-use gamedim::Vec2d;
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Array2d;
+use lowdim::Vec2d;
 
 #[derive(Clone, Copy, Debug)]
 enum Track {

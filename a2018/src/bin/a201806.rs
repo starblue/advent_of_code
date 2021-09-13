@@ -9,8 +9,8 @@ use nom::do_parse;
 use nom::map_res;
 use nom::named;
 
-use gamedim::p2d;
-use gamedim::Point2d;
+use lowdim::p2d;
+use lowdim::Point2d;
 
 named!(int<&str, i64>,
     map_res!(digit1, FromStr::from_str)

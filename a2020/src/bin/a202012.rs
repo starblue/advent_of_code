@@ -4,9 +4,9 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use gamedim::p2d;
-use gamedim::v2d;
-use gamedim::Matrix2d;
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Matrix2d;
 
 use nom::alt;
 use nom::character::complete::digit1;

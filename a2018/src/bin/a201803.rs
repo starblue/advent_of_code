@@ -10,13 +10,13 @@ use nom::do_parse;
 use nom::map_res;
 use nom::named;
 
-use gamedim::p2d;
-use gamedim::v2d;
-use gamedim::Array2d;
-use gamedim::BBox;
-use gamedim::BBox2d;
-use gamedim::Point2d;
-use gamedim::Vec2d;
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Array2d;
+use lowdim::BBox;
+use lowdim::BBox2d;
+use lowdim::Point2d;
+use lowdim::Vec2d;
 
 #[derive(Clone, Debug)]
 struct Record {

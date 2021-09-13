@@ -16,9 +16,9 @@ use nom::recognize;
 use nom::tag;
 use nom::tuple;
 
-use gamedim::p3d;
-use gamedim::Point3d;
-use gamedim::Vector;
+use lowdim::p3d;
+use lowdim::Point3d;
+use lowdim::Vector;
 
 fn manhatten_distance(p1: Point3d, p2: Point3d) -> i64 {
     (p1 - p2).norm_l1()

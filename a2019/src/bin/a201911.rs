@@ -14,10 +14,10 @@ use nom::separated_list1;
 use nom::tag;
 use nom::tuple;
 
-use gamedim::p2d;
-use gamedim::v2d;
-use gamedim::Point2d;
-use gamedim::Vec2d;
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Point2d;
+use lowdim::Vec2d;
 
 named!(
     int64<&str, i64>,

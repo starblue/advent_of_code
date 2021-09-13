@@ -12,12 +12,12 @@ use nom::many1;
 use nom::named;
 use nom::value;
 
-use gamedim::p3d;
-use gamedim::p4d;
-use gamedim::v3d;
-use gamedim::v4d;
-use gamedim::Point3d;
-use gamedim::Point4d;
+use lowdim::p3d;
+use lowdim::p4d;
+use lowdim::v3d;
+use lowdim::v4d;
+use lowdim::Point3d;
+use lowdim::Point4d;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Cube {
