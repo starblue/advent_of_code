@@ -15,21 +15,8 @@ use nom::recognize;
 use nom::tag;
 use nom::tuple;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct Point4d {
-    x: i64,
-    y: i64,
-    z: i64,
-    u: i64,
-}
-
-fn manhatten_distance(p1: &Point4d, p2: &Point4d) -> i64 {
-    let dx = (p1.x - p2.x).abs();
-    let dy = (p1.y - p2.y).abs();
-    let dz = (p1.z - p2.z).abs();
-    let du = (p1.u - p2.u).abs();
-    dx + dy + dz + du
-}
+use lowdim::p4d;
+use lowdim::Point4d;
 
 #[derive(Clone, Debug)]
 enum Error {}
@@ -47,7 +34,7 @@ named!(point<&str, Point4d>,
         z: int64 >>
         tag!(",") >>
         u: int64 >>
-            (Point4d { x, y, z, u })
+            (p4d(x, y, z, u))
     )
 );
 
@@ -60,12 +47,6 @@ named!(points<&str, Vec<Point4d>>,
         )
     )
 );
-
-impl Point4d {
-    fn neighbour(&self, other: &Point4d) -> bool {
-        manhatten_distance(self, other) <= 3
-    }
-}
 
 fn find(reprs: &mut Vec<usize>, i: usize) -> usize {
     let mut i = i;
@@ -107,7 +88,7 @@ fn main() {
     let mut reprs = (0..n).collect::<Vec<_>>();
     for i in 0..(n - 1) {
         for j in (i + 1)..n {
-            if points[i].neighbour(&points[j]) {
+            if points[i].distance_l1(points[j]) <= 3 {
                 union(&mut reprs, i, j);
             }
         }
