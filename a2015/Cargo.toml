@@ -1,0 +1,10 @@
+[package]
+edition = "2018"
+name = "a2015"
+version = "0.1.0"
+authors = ["Juergen Stuber <juergen@jstuber.net>"]
+
+[dependencies]
+lowdim = "0.2.2"
+md5 = "0.7.0"
+nom = "6.2.1"
