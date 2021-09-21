@@ -121,7 +121,7 @@ fn main() {
             instruction.action.apply_1(&mut lights[p]);
         }
     }
-    let result_a = lights.bounds().iter().filter(|&p| lights[p]).count();
+    let result_a = lights.iter().filter(|&&b| b).count();
 
     let bbox = BBox2d::from_points(p2d(0, 0), p2d(999, 999));
     let mut lights = Array2d::new(bbox, 0);
@@ -130,7 +130,7 @@ fn main() {
             instruction.action.apply_2(&mut lights[p]);
         }
     }
-    let result_b = lights.bounds().iter().map(|p| lights[p]).sum::<i64>();
+    let result_b = lights.iter().sum::<i64>();
 
     println!("a: {}", result_a);
     println!("b: {}", result_b);
