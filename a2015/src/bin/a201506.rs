@@ -2,19 +2,18 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use lowdim::Array2d;
-use lowdim::BBox2d;
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p2d;
+use lowdim::Array2d;
+use lowdim::BBox2d;
 use lowdim::Point2d;
 
 #[derive(Clone, Copy, Debug)]
@@ -58,46 +57,42 @@ struct Instruction {
     bbox: BBox2d,
 }
 
-named!(uint<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn uint(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(action<&str, Action>,
-    alt!(
-        value!(Action::TurnOn, tag!("turn on")) |
-        value!(Action::TurnOff, tag!("turn off")) |
-        value!(Action::Toggle, tag!("toggle"))
-    )
-);
+fn action(i: &str) -> IResult<&str, Action> {
+    let p0 = value(Action::TurnOn, tag("turn on"));
+    let p1 = value(Action::TurnOff, tag("turn off"));
+    let p2 = value(Action::Toggle, tag("toggle"));
+    alt((p0, p1, p2))(i)
+}
 
-named!(point<&str, Point2d>,
-    do_parse!(
-        x: uint >>
-        tag!(",") >>
-        y: uint >> (p2d(x, y))
-    )
-);
+fn point(i: &str) -> IResult<&str, Point2d> {
+    let (i, x) = uint(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, y) = uint(i)?;
+    Ok((i, p2d(x, y)))
+}
 
-named!(bbox<&str, BBox2d>,
-    do_parse!(
-        p0: point >>
-        tag!(" through ") >>
-        p1: point >> (BBox2d::from_points(p0, p1))
-    )
-);
+fn bbox(i: &str) -> IResult<&str, BBox2d> {
+    let (i, p0) = point(i)?;
+    let (i, _) = tag(" through ")(i)?;
+    let (i, p1) = point(i)?;
+    Ok((i, BBox2d::from_points(p0, p1)))
+}
 
-named!(instruction<&str, Instruction>,
-    do_parse!(
-        action: action >>
-        tag!(" ") >>
-        bbox: bbox >>
-        line_ending >> (Instruction { action, bbox })
-    )
-);
+fn instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, action) = action(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, bbox) = bbox(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction { action, bbox }))
+}
 
-named!(input<&str, Vec<Instruction>>,
-    many1!(instruction)
-);
+fn input(i: &str) -> IResult<&str, Vec<Instruction>> {
+    many1(instruction)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

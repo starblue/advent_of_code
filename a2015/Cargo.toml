@@ -7,4 +7,4 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 [dependencies]
 lowdim = "0.2.3"
 md5 = "0.7.0"
-nom = "6.2.1"
+nom = "7.0.0"

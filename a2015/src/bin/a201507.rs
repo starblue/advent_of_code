@@ -3,17 +3,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::recognize;
-use nom::tag;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Wire {
@@ -45,13 +44,13 @@ fn apply_rshift(i: Option<u16>, shift: u16) -> Option<u16> {
 #[derive(Clone, Debug)]
 enum Atom {
     Wire(Wire),
-    Value(u16),
+    Number(u16),
 }
 impl Atom {
     fn eval(&self, env: &HashMap<Wire, u16>) -> Option<u16> {
         match self {
             Atom::Wire(w) => env.get(w).copied(),
-            Atom::Value(value) => Some(*value),
+            Atom::Number(value) => Some(*value),
         }
     }
 }
@@ -96,89 +95,96 @@ struct Instruction {
     wire: Wire,
 }
 
-named!(uint<&str, u16>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn uint(i: &str) -> IResult<&str, u16> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(id<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
+fn id(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
 
-named!(wire<&str, Wire>,
-    do_parse!(
-        id: id >> (Wire { id })
-    )
-);
+fn wire(i: &str) -> IResult<&str, Wire> {
+    let (i, id) = id(i)?;
+    Ok((i, Wire { id }))
+}
 
-named!(atom<&str, Atom>,
-    alt!(
-        do_parse!(wire: wire >> (Atom::Wire(wire))) |
-        do_parse!(n: uint >> (Atom::Value(n)))
-    )
-);
+fn atom_wire(i: &str) -> IResult<&str, Atom> {
+    let (i, wire) = wire(i)?;
+    Ok((i, Atom::Wire(wire)))
+}
 
-named!(not<&str, Gate>,
-    do_parse!(
-        tag!("NOT ") >>
-        atom: atom >> (Gate::Not(atom))
-    )
-);
+fn atom_number(i: &str) -> IResult<&str, Atom> {
+    let (i, number) = uint(i)?;
+    Ok((i, Atom::Number(number)))
+}
 
-named!(and<&str, Gate>,
-    do_parse!(
-        atom0: atom >>
-        tag!(" AND ") >>
-        atom1: atom >> (Gate::And(atom0, atom1))
-    )
-);
+fn atom(i: &str) -> IResult<&str, Atom> {
+    alt((atom_wire, atom_number))(i)
+}
 
-named!(or<&str, Gate>,
-    do_parse!(
-        atom0: atom >>
-        tag!(" OR ") >>
-        atom1: atom >> (Gate::Or(atom0, atom1))
-    )
-);
+fn not(i: &str) -> IResult<&str, Gate> {
+    let (i, _) = tag("NOT ")(i)?;
+    let (i, atom) = atom(i)?;
+    Ok((i, Gate::Not(atom)))
+}
 
-named!(lshift<&str, Gate>,
-    do_parse!(
-        atom: atom >>
-        tag!(" LSHIFT ") >>
-        n: uint >> (Gate::LShift(atom, n))
-    )
-);
+fn and(i: &str) -> IResult<&str, Gate> {
+    let (i, atom0) = atom(i)?;
+    let (i, _) = tag(" AND ")(i)?;
+    let (i, atom1) = atom(i)?;
+    Ok((i, Gate::And(atom0, atom1)))
+}
 
-named!(rshift<&str, Gate>,
-    do_parse!(
-        atom: atom >>
-        tag!(" RSHIFT ") >>
-        n: uint >> (Gate::RShift(atom, n))
-    )
-);
+fn or(i: &str) -> IResult<&str, Gate> {
+    let (i, atom0) = atom(i)?;
+    let (i, _) = tag(" OR ")(i)?;
+    let (i, atom1) = atom(i)?;
+    Ok((i, Gate::Or(atom0, atom1)))
+}
 
-named!(gate<&str, Gate>,
-    alt!(not | and | or | lshift | rshift)
-);
+fn lshift(i: &str) -> IResult<&str, Gate> {
+    let (i, atom) = atom(i)?;
+    let (i, _) = tag(" LSHIFT ")(i)?;
+    let (i, n) = uint(i)?;
+    Ok((i, Gate::LShift(atom, n)))
+}
 
-named!(source<&str, Source>,
-    alt!(
-        do_parse!(gate: gate >> (Source::Gate(gate))) |
-        do_parse!(atom: atom >> (Source::Atom(atom)))
-    )
-);
+fn rshift(i: &str) -> IResult<&str, Gate> {
+    let (i, atom) = atom(i)?;
+    let (i, _) = tag(" RSHIFT ")(i)?;
+    let (i, n) = uint(i)?;
+    Ok((i, Gate::RShift(atom, n)))
+}
 
-named!(instruction<&str, Instruction>,
-    do_parse!(
-        source: source >>
-        tag!(" -> ") >>
-        wire: wire >>
-        line_ending >> (Instruction { source, wire })
-    )
-);
+fn gate(i: &str) -> IResult<&str, Gate> {
+    alt((not, and, or, lshift, rshift))(i)
+}
 
-named!(input<&str, Vec<Instruction>>,
-    many1!(instruction)
-);
+fn source_gate(i: &str) -> IResult<&str, Source> {
+    let (i, gate) = gate(i)?;
+    Ok((i, Source::Gate(gate)))
+}
+
+fn source_atom(i: &str) -> IResult<&str, Source> {
+    let (i, atom) = atom(i)?;
+    Ok((i, Source::Atom(atom)))
+}
+
+fn source(i: &str) -> IResult<&str, Source> {
+    alt((source_gate, source_atom))(i)
+}
+
+fn instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, source) = source(i)?;
+    let (i, _) = tag(" -> ")(i)?;
+    let (i, wire) = wire(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction { source, wire }))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Instruction>> {
+    many1(instruction)(i)
+}
 
 fn eval(instructions: Vec<Instruction>, env: &mut HashMap<Wire, u16>) {
     let mut instructions = instructions;

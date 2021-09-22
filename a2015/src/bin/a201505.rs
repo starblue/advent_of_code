@@ -4,26 +4,24 @@ use std::io::Read;
 
 use nom::character::complete::alpha1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::named;
-use nom::recognize;
+use nom::combinator::map;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::IResult;
 
-named!(string<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
+fn string(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
 
-named!(line<&str, String>,
-    do_parse!(
-        s: string >>
-        line_ending >> (s)
-    )
-);
+fn line(i: &str) -> IResult<&str, String> {
+    let (i, s) = string(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, s))
+}
 
-named!(input<&str, Vec<String>>,
-    many1!(line)
-);
+fn input(i: &str) -> IResult<&str, Vec<String>> {
+    many1(line)(i)
+}
 
 fn is_vowel(c: char) -> bool {
     c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'

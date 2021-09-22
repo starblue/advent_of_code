@@ -2,13 +2,12 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
+use nom::combinator::map_res;
+use nom::multi::many1;
+use nom::IResult;
 
 struct Present {
     length: usize,
@@ -37,24 +36,30 @@ impl Present {
     }
 }
 
-named!(uint<&str, usize>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn uint(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(present<&str, Present>,
-    do_parse!(
-        length: uint >>
-        char!('x') >>
-        width: uint >>
-        char!('x') >>
-        height: uint >>
-        line_ending >> (Present { length, width, height })
-    )
-);
+fn present(i: &str) -> IResult<&str, Present> {
+    let (i, length) = uint(i)?;
+    let (i, _) = char('x')(i)?;
+    let (i, width) = uint(i)?;
+    let (i, _) = char('x')(i)?;
+    let (i, height) = uint(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Present {
+            length,
+            width,
+            height,
+        },
+    ))
+}
 
-named!(input<&str, Vec<Present>>,
-    many1!(present)
-);
+fn input(i: &str) -> IResult<&str, Vec<Present>> {
+    many1(present)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

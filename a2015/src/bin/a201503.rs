@@ -2,32 +2,31 @@ use std::collections::HashSet;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
 use lowdim::Vec2d;
 
-named!(action<&str, Vec2d>,
-    alt!(
-        value!(v2d(0, 1), char!('^')) |
-        value!(v2d(0, -1), char!('v')) |
-        value!(v2d(1, 0), char!('>')) |
-        value!(v2d(-1, 0), char!('<'))
-    )
-);
+fn action(i: &str) -> IResult<&str, Vec2d> {
+    let p0 = value(v2d(0, 1), char('^'));
+    let p1 = value(v2d(0, -1), char('v'));
+    let p2 = value(v2d(1, 0), char('>'));
+    let p3 = value(v2d(-1, 0), char('<'));
 
-named!(input<&str, Vec<Vec2d>>,
-    do_parse!(
-        actions: many1!(action) >> line_ending >> (actions)
-    )
-);
+    alt((p0, p1, p2, p3))(i)
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Vec2d>> {
+    let (i, actions) = many1(action)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, actions))
+}
 
 fn main() {
     let mut input_data = String::new();

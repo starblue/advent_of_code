@@ -1,22 +1,21 @@
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::branch::alt;
+use nom::character::complete::char;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
-named!(action<&str, i64>,
-    alt!(
-        value!(1, char!('(')) |
-        value!(-1, char!(')'))
-    )
-);
+fn action(i: &str) -> IResult<&str, i64> {
+    let p0 = value(1, char('('));
+    let p1 = value(-1, char(')'));
+    alt((p0, p1))(i)
+}
 
-named!(input<&str, Vec<i64>>,
-    many1!(action)
-);
+fn input(i: &str) -> IResult<&str, Vec<i64>> {
+    many1(action)(i)
+}
 
 fn main() {
     let mut input_data = String::new();
