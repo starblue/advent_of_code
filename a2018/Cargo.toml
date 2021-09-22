@@ -7,7 +7,7 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 [dependencies]
 nom = "6.2.1"
 num = "0.4.0"
-num-integer = "0.1.41"
-rand = "0.8.1"
+num-integer = "0.1.44"
+rand = "0.8.4"
 pathfinding = "2.2.1"
 lowdim = "0.2.3"
