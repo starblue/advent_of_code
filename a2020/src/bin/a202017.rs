@@ -14,8 +14,6 @@ use nom::value;
 
 use lowdim::p3d;
 use lowdim::p4d;
-use lowdim::v3d;
-use lowdim::v4d;
 use lowdim::Point3d;
 use lowdim::Point4d;
 
@@ -59,35 +57,6 @@ named!(
     )
 );
 
-fn neighbors3d(p: Point3d) -> Vec<Point3d> {
-    let mut result = Vec::new();
-    for dx in -1..=1 {
-        for dy in -1..=1 {
-            for dz in -1..=1 {
-                if dx != 0 || dy != 0 || dz != 0 {
-                    result.push(p + v3d(dx, dy, dz))
-                }
-            }
-        }
-    }
-    result
-}
-fn neighbors4d(p: Point4d) -> Vec<Point4d> {
-    let mut result = Vec::new();
-    for dx in -1..=1 {
-        for dy in -1..=1 {
-            for dz in -1..=1 {
-                for dw in -1..=1 {
-                    if dx != 0 || dy != 0 || dz != 0 || dw != 0 {
-                        result.push(p + v4d(dx, dy, dz, dw))
-                    }
-                }
-            }
-        }
-    }
-    result
-}
-
 fn main() {
     let mut input_data = String::new();
     io::stdin()
@@ -121,7 +90,7 @@ fn main() {
     for _ in 0..6 {
         let neighbor_positions = active_positions
             .iter()
-            .flat_map(|&p| neighbors3d(p).into_iter())
+            .flat_map(|&p| p.neighbors_l_infty().into_iter())
             .collect::<HashSet<Point3d>>();
         let positions = active_positions
             .union(&neighbor_positions)
@@ -131,7 +100,8 @@ fn main() {
             .into_iter()
             .filter(|&p| {
                 let active = active_positions.contains(&p);
-                let count = neighbors3d(p)
+                let count = p
+                    .neighbors_l_infty()
                     .iter()
                     .filter(|np| active_positions.contains(np))
                     .count();
@@ -159,7 +129,7 @@ fn main() {
     for _ in 0..6 {
         let neighbor_positions = active_positions
             .iter()
-            .flat_map(|&p| neighbors4d(p).into_iter())
+            .flat_map(|&p| p.neighbors_l_infty().into_iter())
             .collect::<HashSet<Point4d>>();
         let positions = active_positions
             .union(&neighbor_positions)
@@ -169,7 +139,8 @@ fn main() {
             .into_iter()
             .filter(|&p| {
                 let active = active_positions.contains(&p);
-                let count = neighbors4d(p)
+                let count = p
+                    .neighbors_l_infty()
                     .iter()
                     .filter(|np| active_positions.contains(np))
                     .count();

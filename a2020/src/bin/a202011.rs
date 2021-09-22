@@ -10,8 +10,9 @@ use nom::many1;
 use nom::named;
 use nom::value;
 
-use lowdim::v2d;
 use lowdim::Array2d;
+use lowdim::Vec2d;
+use lowdim::Vector;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Square {
@@ -79,20 +80,11 @@ fn main() {
         let mut new_map = old_map.clone();
         for p in m.bounds().iter() {
             if let Square::Seat(occupied) = old_map[p] {
-                let c = vec![
-                    v2d(1, 0),
-                    v2d(1, 1),
-                    v2d(0, 1),
-                    v2d(-1, 1),
-                    v2d(-1, 0),
-                    v2d(-1, -1),
-                    v2d(0, -1),
-                    v2d(1, -1),
-                ]
-                .iter()
-                .map(|v| p + v)
-                .filter(|&np| m.bounds().contains(np) && old_map[np] == Square::Seat(true))
-                .count();
+                let c = p
+                    .neighbors_l_infty()
+                    .into_iter()
+                    .filter(|&np| old_map.get(np) == Some(&Square::Seat(true)))
+                    .count();
                 if !occupied && c == 0 {
                     new_map[p] = Square::Seat(true);
                     dirty = true;
@@ -107,9 +99,8 @@ fn main() {
         old_map = new_map;
     }
     let result_a = old_map
-        .bounds()
         .iter()
-        .filter(|&np| old_map[np] == Square::Seat(true))
+        .filter(|&&square| square == Square::Seat(true))
         .count();
 
     let mut old_map = m.clone();
@@ -121,21 +112,12 @@ fn main() {
         for p in m.bounds().iter() {
             if let Square::Seat(occupied) = old_map[p] {
                 let mut count = 0;
-                for v in &[
-                    v2d(1, 0),
-                    v2d(1, 1),
-                    v2d(0, 1),
-                    v2d(-1, 1),
-                    v2d(-1, 0),
-                    v2d(-1, -1),
-                    v2d(0, -1),
-                    v2d(1, -1),
-                ] {
+                for v in &Vec2d::unit_vecs_l_infty() {
                     let mut np = p + v;
-                    while m.bounds().contains(np) && old_map[np] == Square::Floor {
+                    while old_map.get(np) == Some(&Square::Floor) {
                         np += v;
                     }
-                    if m.bounds().contains(np) && old_map[np] == Square::Seat(true) {
+                    if old_map.get(np) == Some(&Square::Seat(true)) {
                         count += 1;
                     }
                 }
@@ -153,9 +135,8 @@ fn main() {
         old_map = new_map;
     }
     let result_b = old_map
-        .bounds()
         .iter()
-        .filter(|&np| old_map[np] == Square::Seat(true))
+        .filter(|&&square| square == Square::Seat(true))
         .count();
 
     println!("a: {}", result_a);

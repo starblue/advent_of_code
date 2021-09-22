@@ -18,11 +18,6 @@ use nom::tuple;
 
 use lowdim::p3d;
 use lowdim::Point3d;
-use lowdim::Vector;
-
-fn manhatten_distance(p1: Point3d, p2: Point3d) -> i64 {
-    (p1 - p2).norm_l1()
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Nanobot {
@@ -100,7 +95,7 @@ fn main() {
 
     let result_a = bots
         .iter()
-        .filter(|b| manhatten_distance(b.pos, max_bot.pos) <= max_bot.r)
+        .filter(|b| b.pos.distance_l1(max_bot.pos) <= max_bot.r)
         .count();
 
     let p_min = p3d(std::i64::MIN, std::i64::MIN, std::i64::MIN);

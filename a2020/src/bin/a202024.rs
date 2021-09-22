@@ -17,7 +17,7 @@ use lowdim::Point2d;
 use lowdim::Vec2d;
 
 #[derive(Clone, Copy, Debug)]
-enum Dir {
+enum HexDir {
     E,
     NE,
     NW,
@@ -25,46 +25,56 @@ enum Dir {
     SW,
     SE,
 }
-const DIRS: [Dir; 6] = [Dir::E, Dir::NE, Dir::NW, Dir::W, Dir::SW, Dir::SE];
-impl Dir {
+const DIRS: [HexDir; 6] = [
+    HexDir::E,
+    HexDir::NE,
+    HexDir::NW,
+    HexDir::W,
+    HexDir::SW,
+    HexDir::SE,
+];
+impl HexDir {
     fn to_str(&self) -> &str {
         match self {
-            Dir::E => "e",
-            Dir::NE => "ne",
-            Dir::NW => "nw",
-            Dir::W => "w",
-            Dir::SW => "sw",
-            Dir::SE => "se",
+            HexDir::E => "e",
+            HexDir::NE => "ne",
+            HexDir::NW => "nw",
+            HexDir::W => "w",
+            HexDir::SW => "sw",
+            HexDir::SE => "se",
         }
     }
 }
-impl Dir {
+impl HexDir {
     /// Get the vector corresponding to a direction.
     ///
     /// One step in x direction is east, in y direction northwest,
     /// same as for Eisenstein numbers.
     fn to_v2d(&self) -> Vec2d {
         match self {
-            Dir::E => v2d(1, 0),
-            Dir::NE => v2d(1, 1),
-            Dir::NW => v2d(0, 1),
-            Dir::W => v2d(-1, 0),
-            Dir::SW => v2d(-1, -1),
-            Dir::SE => v2d(0, -1),
+            HexDir::E => v2d(1, 0),
+            HexDir::NE => v2d(1, 1),
+            HexDir::NW => v2d(0, 1),
+            HexDir::W => v2d(-1, 0),
+            HexDir::SW => v2d(-1, -1),
+            HexDir::SE => v2d(0, -1),
         }
     }
 }
-impl fmt::Display for Dir {
+impl fmt::Display for HexDir {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.to_str())
     }
 }
 
 #[derive(Clone, Debug)]
-struct Tile(Vec<Dir>);
+struct Tile(Vec<HexDir>);
 impl Tile {
     fn pos(&self) -> Point2d {
-        self.0.iter().map(Dir::to_v2d).fold(p2d(0, 0), |p, v| p + v)
+        self.0
+            .iter()
+            .map(HexDir::to_v2d)
+            .fold(p2d(0, 0), |p, v| p + v)
     }
 }
 impl fmt::Display for Tile {
@@ -76,14 +86,14 @@ impl fmt::Display for Tile {
     }
 }
 
-named!(dir<&str, Dir>,
+named!(dir<&str, HexDir>,
     alt!(
-        value!(Dir::E, tag!("e")) |
-        value!(Dir::NE, tag!("ne")) |
-        value!(Dir::NW, tag!("nw")) |
-        value!(Dir::W, tag!("w")) |
-        value!(Dir::SW, tag!("sw")) |
-        value!(Dir::SE, tag!("se"))
+        value!(HexDir::E, tag!("e")) |
+        value!(HexDir::NE, tag!("ne")) |
+        value!(HexDir::NW, tag!("nw")) |
+        value!(HexDir::W, tag!("w")) |
+        value!(HexDir::SW, tag!("sw")) |
+        value!(HexDir::SE, tag!("se"))
     )
 );
 
@@ -103,7 +113,7 @@ named!(input<&str, Vec<Tile>>,
     )
 );
 
-fn neighbors(p: Point2d) -> Vec<Point2d> {
+fn hex_neighbors(p: Point2d) -> Vec<Point2d> {
     DIRS.iter().map(|d| p + d.to_v2d()).collect::<Vec<_>>()
 }
 
@@ -139,7 +149,7 @@ fn main() {
     for _ in 0..100 {
         let neighbor_positions = black_positions
             .iter()
-            .flat_map(|&p| neighbors(p).into_iter())
+            .flat_map(|&p| hex_neighbors(p).into_iter())
             .collect::<HashSet<Point2d>>();
         let positions = black_positions
             .union(&neighbor_positions)
@@ -149,7 +159,7 @@ fn main() {
             .into_iter()
             .filter(|&p| {
                 let black = black_positions.contains(&p);
-                let count = neighbors(p)
+                let count = hex_neighbors(p)
                     .iter()
                     .filter(|np| black_positions.contains(np))
                     .count();

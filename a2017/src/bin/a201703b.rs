@@ -35,7 +35,7 @@ fn main() {
             }
         }
 
-        // compute sum of neighbours
+        // compute sum of neighbors
         let sum = p
             .neighbors_l_infty()
             .iter()
