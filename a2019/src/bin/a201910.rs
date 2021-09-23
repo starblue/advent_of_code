@@ -1,13 +1,12 @@
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use num::integer::gcd;
 
@@ -15,27 +14,19 @@ use lowdim::p2d;
 use lowdim::v2d;
 use lowdim::Vec2d;
 
-named!(cell<&str, bool>,
-    alt!(
-        value!(true, char!('#')) |
-        value!(false, char!('.'))
-    )
-);
+fn cell(i: &str) -> IResult<&str, bool> {
+    alt((value(true, char('#')), value(false, char('.'))))(i)
+}
 
-named!(
-    line<&str, Vec<bool>>,
-    many1!(cell)
-);
+fn line(i: &str) -> IResult<&str, Vec<bool>> {
+    let (i, line) = many1(cell)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, line))
+}
 
-named!(
-    input<&str, Vec<Vec<bool>>>,
-    many1!(
-        do_parse!(
-            line: line >>
-            line_ending >> (line)
-        )
-    )
-);
+fn input(i: &str) -> IResult<&str, Vec<Vec<bool>>> {
+    many1(line)(i)
+}
 
 fn polar(v: Vec2d) -> (i64, Vec2d) {
     let d = gcd(v.x(), v.y());

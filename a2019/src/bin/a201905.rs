@@ -2,25 +2,26 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::separated_list1;
+use nom::sequence::tuple;
+use nom::IResult;
 
-named!(
-    int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(
-    input<&str, Vec<i64>>,
-    separated_list1!(tag!(","), int64)
-);
+fn input(i: &str) -> IResult<&str, Vec<i64>> {
+    separated_list1(tag(","), int64)(i)
+}
 
 fn get(state: &[i64], pa: usize, pm: i64) -> i64 {
     match pm {
@@ -42,7 +43,7 @@ fn run(state: Vec<i64>, input: Vec<i64>) -> i64 {
 
     let mut ip = 0;
     loop {
-        println!("{}: {:?}", ip, &state[..20]);
+        // println!("{}: {:?}", ip, &state[..20]);
 
         let ins = state[ip] % 100;
         let pm0 = (state[ip] / 100) % 10;
@@ -76,7 +77,7 @@ fn run(state: Vec<i64>, input: Vec<i64>) -> i64 {
                 ip += 2;
 
                 output = p0;
-                println!("output: {}", output);
+                // println!("output: {}", output);
             }
             5 => {
                 let p0 = get(&state, ip + 1, pm0);

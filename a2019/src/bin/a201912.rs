@@ -5,17 +5,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 use num::integer::lcm;
 
@@ -25,29 +24,28 @@ use lowdim::Point3d;
 use lowdim::Vec3d;
 use lowdim::Vector;
 
-named!(
-    int<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(
-    line<&str, Point3d>,
-    do_parse!(
-        tag!("<x=") >>
-        x: int >>
-        tag!(", y=") >>
-        y: int >>
-        tag!(", z=") >>
-        z: int >>
-        tag!(">") >>
-        line_ending >> (p3d(x, y, z))
-    )
-);
+fn line(i: &str) -> IResult<&str, Point3d> {
+    let (i, _) = tag("<x=")(i)?;
+    let (i, x) = int(i)?;
+    let (i, _) = tag(", y=")(i)?;
+    let (i, y) = int(i)?;
+    let (i, _) = tag(", z=")(i)?;
+    let (i, z) = int(i)?;
+    let (i, _) = tag(">")(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, p3d(x, y, z)))
+}
 
-named!(
-    input<&str, Vec<Point3d>>,
-    many1!(line)
-);
+fn input(i: &str) -> IResult<&str, Vec<Point3d>> {
+    many1(line)(i)
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct State {

@@ -4,20 +4,19 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::multi::separated_list1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 #[derive(Clone, Debug)]
 struct Quantity {
@@ -62,36 +61,35 @@ impl fmt::Display for Reaction {
     }
 }
 
-named!(
-    int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(chemical<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
+fn chemical(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
 
-named!(quantity<&str, Quantity>,
-    do_parse!(
-        n: int64 >>
-        tag!(" ") >>
-        chemical: chemical >> (Quantity { n, chemical })
-    )
-);
+fn quantity(i: &str) -> IResult<&str, Quantity> {
+    let (i, n) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, chemical) = chemical(i)?;
+    Ok((i, Quantity { n, chemical }))
+}
 
-named!(reaction<&str, Reaction>,
-    do_parse!(
-        ins: separated_list1!(tag!(", "), quantity) >>
-        tag!(" => ") >>
-        out: quantity >>
-        line_ending >> (Reaction { ins, out })
-    )
-);
+fn reaction(i: &str) -> IResult<&str, Reaction> {
+    let (i, ins) = separated_list1(tag(", "), quantity)(i)?;
+    let (i, _) = tag(" => ")(i)?;
+    let (i, out) = quantity(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Reaction { ins, out }))
+}
 
-named!(
-    input<&str, Vec<Reaction>>,
-    many1!(reaction)
-);
+fn input(i: &str) -> IResult<&str, Vec<Reaction>> {
+    many1(reaction)(i)
+}
 
 fn required_ore(map: &HashMap<&str, &Reaction>, required_fuel: i64) -> i64 {
     let mut required = HashMap::new();

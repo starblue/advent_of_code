@@ -4,16 +4,15 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::separated_list1;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
@@ -26,40 +25,35 @@ struct Link {
     steps: usize,
 }
 
-named!(
-    uint<&str, usize>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn uint(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(dir<&str, Vec2d>,
-    alt!(
-        value!(v2d(1, 0), char!('R')) |
-        value!(v2d(0, 1), char!('U')) |
-        value!(v2d(-1, 0), char!('L')) |
-        value!(v2d(0, -1), char!('D'))
-    )
-);
+fn dir(i: &str) -> IResult<&str, Vec2d> {
+    alt((
+        value(v2d(1, 0), char('R')),
+        value(v2d(0, 1), char('U')),
+        value(v2d(-1, 0), char('L')),
+        value(v2d(0, -1), char('D')),
+    ))(i)
+}
 
-named!(link<&str, Link>,
-    do_parse!(
-        dir: dir >>
-        steps: uint >> (Link { dir, steps })
-    )
-);
+fn link(i: &str) -> IResult<&str, Link> {
+    let (i, dir) = dir(i)?;
+    let (i, steps) = uint(i)?;
+    Ok((i, Link { dir, steps }))
+}
 
-named!(
-    path<&str, Vec<Link>>,
-    separated_list1!(tag!(","), link)
-);
+fn path(i: &str) -> IResult<&str, Vec<Link>> {
+    separated_list1(tag(","), link)(i)
+}
 
-named!(
-    input<&str, (Vec<Link>,Vec<Link>)>,
-    do_parse!(
-        p0: path >>
-        line_ending >>
-        p1: path >> ((p0, p1))
-    )
-);
+fn input(i: &str) -> IResult<&str, (Vec<Link>, Vec<Link>)> {
+    let (i, p0) = path(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, p1) = path(i)?;
+    Ok((i, (p0, p1)))
+}
 
 fn positions(path: Vec<Link>) -> HashMap<Point2d, i64> {
     let mut ps = HashMap::new();

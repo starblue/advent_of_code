@@ -4,30 +4,31 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::separated_list1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
 use lowdim::Point2d;
 use lowdim::Vec2d;
 
-named!(
-    int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(
-    input<&str, Vec<i64>>,
-    separated_list1!(tag!(","), int64)
-);
+fn input(i: &str) -> IResult<&str, Vec<i64>> {
+    separated_list1(tag(","), int64)(i)
+}
 
 #[derive(Clone, Debug)]
 struct State {

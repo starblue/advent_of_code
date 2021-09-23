@@ -2,36 +2,29 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Read;
 
-use nom::char;
 use nom::character::complete::alphanumeric1;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::named;
-use nom::recognize;
+use nom::combinator::map;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::IResult;
 
-named!(object<&str, String>,
-    map!(recognize!(many1!(alphanumeric1)), String::from)
-);
+fn object(i: &str) -> IResult<&str, String> {
+    map(recognize(many1(alphanumeric1)), String::from)(i)
+}
 
-named!(
-    orbit<&str, (String, String)>,
-    do_parse!(
-        obj0: object >>
-        char!(')') >>
-        obj1: object >> ((obj0, obj1)))
-);
+fn orbit(i: &str) -> IResult<&str, (String, String)> {
+    let (i, obj0) = object(i)?;
+    let (i, _) = char(')')(i)?;
+    let (i, obj1) = object(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, (obj0, obj1)))
+}
 
-named!(
-    input<&str, Vec<(String, String)>>,
-    many1!(
-        do_parse!(
-            orbit: orbit >>
-            line_ending >> (orbit)
-        )
-    )
-);
+fn input(i: &str) -> IResult<&str, Vec<(String, String)>> {
+    many1(orbit)(i)
+}
 
 fn orbit_count(m: &HashMap<String, String>, a: &str) -> i64 {
     let mut a = a;
