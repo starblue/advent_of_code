@@ -5,17 +5,16 @@ use std::io;
 use std::io::Read;
 use std::rc::Rc;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many0;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::many0;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Op {
@@ -108,54 +107,53 @@ impl fmt::Display for Expr {
     }
 }
 
-named!(int<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(op<&str, Op>,
-    alt!(
-        value!(Op::Add, char!('+')) |
-        value!(Op::Mul, char!('*'))
-    )
-);
-named!(prim_expr<&str, Expr>,
-    alt!(
-        do_parse!(
-            char!('(') >>
-            e: expr >>
-            char!(')') >>
-                (Expr::Paren(Rc::new(e)))
-        ) |
-        do_parse!(
-            n: int >>
-                (Expr::Num(n))
-        )
-    )
-);
-named!(op_expr<&str, (Op, Expr)>,
-   do_parse!(
-       tag!(" ") >>
-       op: op >>
-       tag!(" ") >>
-       e: prim_expr >>
-           ((op, e))
-   )
-);
-named!(expr<&str, Expr>,
-    do_parse!(
-        e: prim_expr >>
-        oes: many0!(op_expr) >>
-            (Expr::from(e, oes))
-    )
-);
-named!(input<&str, Vec<Expr>>,
-    many1!(
-        do_parse!(
-            e: expr >>
-            line_ending >>
-                (e)
-        )
-    )
-);
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn op(i: &str) -> IResult<&str, Op> {
+    alt((value(Op::Add, char('+')), value(Op::Mul, char('*'))))(i)
+}
+
+fn prim_expr_paren(i: &str) -> IResult<&str, Expr> {
+    let (i, _) = char('(')(i)?;
+    let (i, e) = expr(i)?;
+    let (i, _) = char(')')(i)?;
+    Ok((i, Expr::Paren(Rc::new(e))))
+}
+
+fn prim_expr_num(i: &str) -> IResult<&str, Expr> {
+    let (i, n) = int(i)?;
+    Ok((i, Expr::Num(n)))
+}
+
+fn prim_expr(i: &str) -> IResult<&str, Expr> {
+    alt((prim_expr_paren, prim_expr_num))(i)
+}
+
+fn op_expr(i: &str) -> IResult<&str, (Op, Expr)> {
+    let (i, _) = tag(" ")(i)?;
+    let (i, op) = op(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, e) = prim_expr(i)?;
+    Ok((i, (op, e)))
+}
+
+fn expr(i: &str) -> IResult<&str, Expr> {
+    let (i, e) = prim_expr(i)?;
+    let (i, oes) = many0(op_expr)(i)?;
+    Ok((i, Expr::from(e, oes)))
+}
+
+fn line(i: &str) -> IResult<&str, Expr> {
+    let (i, e) = expr(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, e))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Expr>> {
+    many1(line)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

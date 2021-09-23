@@ -5,18 +5,17 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::recognize;
-use nom::tag;
-use nom::tuple;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::recognize;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug)]
 enum Opcode {
@@ -45,39 +44,32 @@ impl fmt::Display for Instruction {
     }
 }
 
-named!(int64<&str, i64>,
-    map_res!(
-        recognize!(
-            tuple!(
-                alt!(
-                    char!('+') |
-                    char!('-')
-                ),
-                digit1
-            )
-        ),
-        FromStr::from_str
-    )
-);
-named!(opcode<&str, Opcode>,
-    alt!(
-        value!(Opcode::Acc, tag!("acc")) |
-        value!(Opcode::Jmp, tag!("jmp")) |
-        value!(Opcode::Nop, tag!("nop"))
-    )
-);
-named!(instruction<&str, Instruction>,
-    do_parse!(
-        opcode: opcode >>
-        tag!(" ") >>
-        arg: int64 >>
-        line_ending >> (Instruction { opcode, arg })
-    )
-);
-named!(
-    input<&str, Vec<Instruction>>,
-    many1!(instruction)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((alt((char('+'), char('-'))), digit1))),
+        FromStr::from_str,
+    )(i)
+}
+
+fn opcode(i: &str) -> IResult<&str, Opcode> {
+    alt((
+        value(Opcode::Acc, tag("acc")),
+        value(Opcode::Jmp, tag("jmp")),
+        value(Opcode::Nop, tag("nop")),
+    ))(i)
+}
+
+fn instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, opcode) = opcode(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, arg) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction { opcode, arg }))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Instruction>> {
+    many1(instruction)(i)
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Outcome {

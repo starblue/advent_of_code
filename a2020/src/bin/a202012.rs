@@ -8,15 +8,14 @@ use lowdim::p2d;
 use lowdim::v2d;
 use lowdim::Matrix2d;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug)]
 enum Action {
@@ -58,31 +57,32 @@ impl fmt::Display for Instruction {
     }
 }
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(action<&str, Action>,
-    alt!(
-        value!(Action::North,   tag!("N")) |
-        value!(Action::South,   tag!("S")) |
-        value!(Action::East,    tag!("E")) |
-        value!(Action::West,    tag!("W")) |
-        value!(Action::Left,    tag!("L")) |
-        value!(Action::Right,   tag!("R")) |
-        value!(Action::Forward, tag!("F"))
-    )
-);
-named!(instruction<&str, Instruction>,
-    do_parse!(
-        action: action >>
-        arg: int64 >>
-        line_ending >> (Instruction { action, arg })
-    )
-);
-named!(
-    input<&str, Vec<Instruction>>,
-    many1!(instruction)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn action(i: &str) -> IResult<&str, Action> {
+    alt((
+        value(Action::North, tag("N")),
+        value(Action::South, tag("S")),
+        value(Action::East, tag("E")),
+        value(Action::West, tag("W")),
+        value(Action::Left, tag("L")),
+        value(Action::Right, tag("R")),
+        value(Action::Forward, tag("F")),
+    ))(i)
+}
+
+fn instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, action) = action(i)?;
+    let (i, arg) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction { action, arg }))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Instruction>> {
+    many1(instruction)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

@@ -3,22 +3,21 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many0;
-use nom::many1;
-use nom::many_m_n;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::none_of;
-use nom::one_of;
-use nom::preceded;
-use nom::recognize;
-use nom::tag;
-use nom::value;
+use nom::character::complete::none_of;
+use nom::character::complete::one_of;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::recognize;
+use nom::combinator::value;
+use nom::multi::many0;
+use nom::multi::many1;
+use nom::multi::many_m_n;
+use nom::sequence::preceded;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug)]
 enum Unit {
@@ -31,67 +30,58 @@ struct Height {
     unit: Unit,
 }
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(year<&str, i64>,
-    map_res!(
-        recognize!(
-            many_m_n!(4, 4, one_of!("0123456789"))),
-        FromStr::from_str
-    )
-);
+fn year(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(many_m_n(4, 4, one_of("0123456789"))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(unit<&str, Unit>,
-    alt!(
-        value!(Unit::Cm, tag!("cm")) |
-        value!(Unit::Inch, tag!("in"))
-    )
-);
-named!(height<&str, Height>,
-    do_parse!(
-        value: int64 >>
-        unit: unit >> (Height {value, unit})
-    )
-);
+fn unit(i: &str) -> IResult<&str, Unit> {
+    alt((value(Unit::Cm, tag("cm")), value(Unit::Inch, tag("in"))))(i)
+}
 
-named!(hcl<&str, String>,
-    map_res!(
-        recognize!(
-            preceded!(
-                tag!("#"),
-                many_m_n!(6, 6, one_of!("0123456789abcdef"))
-            )
-        ),
-        FromStr::from_str
-    )
-);
+fn height(i: &str) -> IResult<&str, Height> {
+    let (i, value) = int64(i)?;
+    let (i, unit) = unit(i)?;
+    Ok((i, Height { value, unit }))
+}
 
-named!(ecl<&str, String>,
-    map_res!(
-        recognize!(
-            alt!(
-                tag!("amb") |
-                tag!("blu") |
-                tag!("brn") |
-                tag!("gry") |
-                tag!("grn") |
-                tag!("hzl") |
-                tag!("oth")
-            )
-        ),
-        FromStr::from_str
-    )
-);
-named!(pid<&str, String>,
-    map_res!(
-        recognize!(
-            many_m_n!(9, 9, one_of!("0123456789"))
-        ),
-        FromStr::from_str
-    )
-);
+fn hcl(i: &str) -> IResult<&str, String> {
+    map_res(
+        recognize(preceded(
+            tag("#"),
+            many_m_n(6, 6, one_of("0123456789abcdef")),
+        )),
+        FromStr::from_str,
+    )(i)
+}
+
+fn ecl(i: &str) -> IResult<&str, String> {
+    map_res(
+        recognize(alt((
+            tag("amb"),
+            tag("blu"),
+            tag("brn"),
+            tag("gry"),
+            tag("grn"),
+            tag("hzl"),
+            tag("oth"),
+        ))),
+        FromStr::from_str,
+    )(i)
+}
+
+fn pid(i: &str) -> IResult<&str, String> {
+    map_res(
+        recognize(many_m_n(9, 9, one_of("0123456789"))),
+        FromStr::from_str,
+    )(i)
+}
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 enum Field {
@@ -177,44 +167,40 @@ impl Passport {
     }
 }
 
-named!(field<&str, Field>,
-    alt!(
-        value!(Field::Byr, tag!("byr")) |
-        value!(Field::Iyr, tag!("iyr")) |
-        value!(Field::Eyr, tag!("eyr")) |
-        value!(Field::Hgt, tag!("hgt")) |
-        value!(Field::Hcl, tag!("hcl")) |
-        value!(Field::Ecl, tag!("ecl")) |
-        value!(Field::Pid, tag!("pid")) |
-        value!(Field::Cid, tag!("cid"))
-    )
-);
+fn field(i: &str) -> IResult<&str, Field> {
+    alt((
+        value(Field::Byr, tag("byr")),
+        value(Field::Iyr, tag("iyr")),
+        value(Field::Eyr, tag("eyr")),
+        value(Field::Hgt, tag("hgt")),
+        value(Field::Hcl, tag("hcl")),
+        value(Field::Ecl, tag("ecl")),
+        value(Field::Pid, tag("pid")),
+        value(Field::Cid, tag("cid")),
+    ))(i)
+}
 
-named!(value<&str, String>,
-    map!(recognize!(many0!(none_of!(" \n"))), String::from)
-);
+fn val(i: &str) -> IResult<&str, String> {
+    map(recognize(many0(none_of(" \n"))), String::from)(i)
+}
 
-named!(pair<&str, (Field, String)>,
-    do_parse!(
-        field: field >>
-        tag!(":") >>
-        value: value >>
-        alt!(
-            tag!(" ") |
-            line_ending
-        ) >> ((field, value)))
-);
-named!(passport<&str, Passport>,
-    do_parse!(
-        pairs: many1!(pair) >>
-        line_ending >> (Passport(pairs.into_iter().collect()))
-    )
-);
+fn pair(i: &str) -> IResult<&str, (Field, String)> {
+    let (i, field) = field(i)?;
+    let (i, _) = tag(":")(i)?;
+    let (i, value) = val(i)?;
+    let (i, _) = alt((tag(" "), line_ending))(i)?;
+    Ok((i, (field, value)))
+}
 
-named!(
-    input<&str, Vec<Passport>>,
-    many1!(passport)
-);
+fn passport(i: &str) -> IResult<&str, Passport> {
+    let (i, pairs) = many1(pair)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Passport(pairs.into_iter().collect())))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Passport>> {
+    many1(passport)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

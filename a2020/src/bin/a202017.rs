@@ -4,13 +4,12 @@ use std::collections::HashSet;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p3d;
 use lowdim::p4d;
@@ -36,26 +35,22 @@ impl fmt::Display for Cube {
     }
 }
 
-named!(cube<&str, Cube>,
-    alt!(
-        value!(Cube::Inactive, char!('.')) |
-        value!(Cube::Active, char!('#'))
-    )
-);
-named!(
-    line<&str, Vec<Cube>>,
-    many1!(cube)
-);
+fn cube(i: &str) -> IResult<&str, Cube> {
+    alt((
+        value(Cube::Inactive, char('.')),
+        value(Cube::Active, char('#')),
+    ))(i)
+}
 
-named!(
-    lines<&str, Vec<Vec<Cube>>>,
-    many1!(
-        do_parse!(
-            line: line >>
-            line_ending >> (line)
-        )
-    )
-);
+fn line(i: &str) -> IResult<&str, Vec<Cube>> {
+    let (i, line) = many1(cube)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, line))
+}
+
+fn lines(i: &str) -> IResult<&str, Vec<Vec<Cube>>> {
+    many1(line)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

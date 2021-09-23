@@ -1,48 +1,42 @@
 use std::io;
 use std::io::Read;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::many_m_n;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::multi::many_m_n;
+use nom::IResult;
 
-named!(fb<&str, i64>,
-   alt!(
-       value!(0, tag!("F")) |
-       value!(1, tag!("B"))
-   )
-);
-named!(lr<&str, i64>,
-   alt!(
-       value!(0, tag!("L")) |
-       value!(1, tag!("R"))
-   )
-);
-named!(row<&str, i64>,
-    do_parse!(
-        fbs: many_m_n!(7, 7, fb) >> (fbs.into_iter().fold(0, |a, b| 2 * a + b))
-    )
-);
-named!(column<&str, i64>,
-    do_parse!(
-        lrs: many_m_n!(3, 3, lr) >> (lrs.into_iter().fold(0, |a, b| 2 * a + b))
-    )
-);
-named!(seat<&str, i64>,
-    do_parse!(
-        row: row >>
-        column: column >>
-        line_ending >> (row * 8 + column)
-    )
-);
-named!(
-    input<&str, Vec<i64>>,
-    many1!(seat)
-);
+fn fb(i: &str) -> IResult<&str, i64> {
+    alt((value(0, tag("F")), value(1, tag("B"))))(i)
+}
+
+fn lr(i: &str) -> IResult<&str, i64> {
+    alt((value(0, tag("L")), value(1, tag("R"))))(i)
+}
+
+fn row(i: &str) -> IResult<&str, i64> {
+    let (i, fbs) = many_m_n(7, 7, fb)(i)?;
+    Ok((i, fbs.into_iter().fold(0, |a, b| 2 * a + b)))
+}
+
+fn column(i: &str) -> IResult<&str, i64> {
+    let (i, lrs) = many_m_n(3, 3, lr)(i)?;
+    Ok((i, lrs.into_iter().fold(0, |a, b| 2 * a + b)))
+}
+
+fn seat(i: &str) -> IResult<&str, i64> {
+    let (i, row) = row(i)?;
+    let (i, column) = column(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, row * 8 + column))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<i64>> {
+    many1(seat)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

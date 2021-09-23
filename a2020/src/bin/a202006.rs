@@ -4,31 +4,30 @@ use std::io::Read;
 
 use nom::character::complete::alpha1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::named;
-use nom::recognize;
+use nom::combinator::map;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::IResult;
 
-named!(answers<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
-named!(person<&str, String>,
-    do_parse!(
-        answers: answers >>
-        line_ending >> (answers)
-    )
-);
-named!(group<&str, Vec<String>>,
-    do_parse!(
-        persons: many1!(person) >>
-        line_ending >> (persons)
-    )
-);
-named!(
-    input<&str, Vec<Vec<String>>>,
-    many1!(group)
-);
+fn answers(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
+
+fn person(i: &str) -> IResult<&str, String> {
+    let (i, answers) = answers(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, answers))
+}
+
+fn group(i: &str) -> IResult<&str, Vec<String>> {
+    let (i, persons) = many1(person)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, persons))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Vec<String>>> {
+    many1(group)(i)
+}
 
 fn answer_set(s: &str) -> HashSet<char> {
     let mut result = HashSet::new();

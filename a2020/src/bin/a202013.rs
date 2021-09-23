@@ -4,38 +4,39 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::separated_list1;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::separated_list1;
+use nom::IResult;
 
-named!(
-    int<&str, i128>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(
-    bus<&str, Option<i128>>,
-    alt!(
-        value!(None, tag!("x")) |
-        do_parse!(
-            n: int >> (Some(n))
-        )
-    )
-);
-named!(
-    input<&str, (i128, Vec<Option<i128>>)>,
-    do_parse!(
-        earliest: int >>
-        line_ending >>
-        buses: separated_list1!(tag!(","), bus) >>
-        line_ending >> ((earliest, buses))
-    )
-);
+fn int(i: &str) -> IResult<&str, i128> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn bus_in_service(i: &str) -> IResult<&str, Option<i128>> {
+    let (i, n) = int(i)?;
+    Ok((i, Some(n)))
+}
+
+fn bus_out_of_service(i: &str) -> IResult<&str, Option<i128>> {
+    value(None, tag("x"))(i)
+}
+
+fn bus(i: &str) -> IResult<&str, Option<i128>> {
+    alt((bus_in_service, bus_out_of_service))(i)
+}
+
+fn input(i: &str) -> IResult<&str, (i128, Vec<Option<i128>>)> {
+    let (i, earliest) = int(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, buses) = separated_list1(tag(","), bus)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, (earliest, buses)))
+}
 
 fn egcd(a: i128, b: i128) -> (i128, i128, i128) {
     if a == 0 && b == 0 {

@@ -5,16 +5,15 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::many_m_n;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::multi::many_m_n;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug)]
 struct Mask {
@@ -93,54 +92,50 @@ impl fmt::Display for Instruction {
     }
 }
 
-named!(int<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(mask_bit<&str, (i64, i64)>,
-    alt!(
-        value!((0, 0), tag!("X")) |
-        value!((1, 0), tag!("0")) |
-        value!((1, 1), tag!("1"))
-    )
-);
-named!(mask<&str, Mask>,
-    do_parse!(
-        bits: many_m_n!(36, 36, mask_bit) >> ({
-            let (mask, value) =
-                bits.iter().fold(
-                    (0, 0),
-                    |(m, v), (mb, vb)| ((m << 1) | mb, (v << 1) | vb)
-                );
-            Mask { mask, value }
-        })
-    )
-);
-named!(mask_instruction<&str, Instruction>,
-    do_parse!(
-        tag!("mask = ") >>
-        mask: mask >>
-        line_ending >> (Instruction::Mask(mask))
-    )
-);
-named!(write_instruction<&str, Instruction>,
-    do_parse!(
-        tag!("mem[") >>
-        address: int >>
-        tag!("] = ") >>
-        value: int >>
-        line_ending >> (Instruction::Write { address, value })
-    )
-);
-named!(instruction<&str, Instruction>,
-    alt!(
-        mask_instruction |
-        write_instruction
-    )
-);
-named!(
-    input<&str, Vec<Instruction>>,
-    many1!(instruction)
-);
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn mask_bit(i: &str) -> IResult<&str, (i64, i64)> {
+    alt((
+        value((0, 0), tag("X")),
+        value((1, 0), tag("0")),
+        value((1, 1), tag("1")),
+    ))(i)
+}
+
+fn mask(i: &str) -> IResult<&str, Mask> {
+    let (i, bits) = many_m_n(36, 36, mask_bit)(i)?;
+    Ok((i, {
+        let (mask, value) = bits
+            .iter()
+            .fold((0, 0), |(m, v), (mb, vb)| ((m << 1) | mb, (v << 1) | vb));
+        Mask { mask, value }
+    }))
+}
+
+fn mask_instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, _) = tag("mask = ")(i)?;
+    let (i, mask) = mask(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction::Mask(mask)))
+}
+
+fn write_instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, _) = tag("mem[")(i)?;
+    let (i, address) = int(i)?;
+    let (i, _) = tag("] = ")(i)?;
+    let (i, value) = int(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instruction::Write { address, value }))
+}
+
+fn instruction(i: &str) -> IResult<&str, Instruction> {
+    alt((mask_instruction, write_instruction))(i)
+}
+fn input(i: &str) -> IResult<&str, Vec<Instruction>> {
+    many1(instruction)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

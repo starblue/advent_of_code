@@ -6,18 +6,17 @@ use std::io;
 use std::io::Read;
 use std::rc::Rc;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::none_of;
-use nom::separated_list1;
-use nom::tag;
+use nom::character::complete::none_of;
+use nom::combinator::map_res;
+use nom::multi::many1;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 enum Expr {
@@ -147,63 +146,54 @@ impl Parser {
     }
 }
 
-named!(int<&str, usize>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(literal<&str, Expr>,
-    do_parse!(
-        char!('\"') >>
-        c: none_of!("\"") >>
-        char!('\"') >>
-            (Expr::Lit(c))
-    )
-);
-named!(sequence<&str, Expr>,
-    do_parse!(
-        seq: separated_list1!(tag!(" "), int) >>
-            (Expr::from_sequence(
-                seq.into_iter()
-                    .map(|n| Expr::Rule(n))
-                    .collect::<Vec<_>>()
-            ))
-    )
-);
-named!(alternatives<&str, Expr>,
-    do_parse!(
-        alts: separated_list1!(tag!(" | "), sequence) >>
-            (Expr::from_alternatives(alts))
-    )
-);
-named!(body<&str, Expr>,
-    alt!(
-        literal |
-        alternatives
-    )
-);
-named!(rule<&str, Rule>,
-    do_parse!(
-        number: int >>
-        tag!(": ") >>
-        body: body >>
-        line_ending >>
-            (Rule { number, body })
-    )
-);
-named!(message<&str, String>,
-    do_parse!(
-        msg: alpha1 >>
-        line_ending >>
-            (String::from(msg))
-    )
-);
-named!(input<&str, Input>,
-    do_parse!(
-        rules: many1!(rule) >>
-        line_ending >>
-        messages: many1!(message) >>
-            (Input { rules, messages })
-    )
-);
+fn int(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn literal(i: &str) -> IResult<&str, Expr> {
+    let (i, _) = char('\"')(i)?;
+    let (i, c) = none_of("\"")(i)?;
+    let (i, _) = char('\"')(i)?;
+    Ok((i, Expr::Lit(c)))
+}
+
+fn sequence(i: &str) -> IResult<&str, Expr> {
+    let (i, seq) = separated_list1(tag(" "), int)(i)?;
+    Ok((
+        i,
+        Expr::from_sequence(seq.into_iter().map(|n| Expr::Rule(n)).collect::<Vec<_>>()),
+    ))
+}
+
+fn alternatives(i: &str) -> IResult<&str, Expr> {
+    let (i, alts) = separated_list1(tag(" | "), sequence)(i)?;
+    Ok((i, Expr::from_alternatives(alts)))
+}
+
+fn body(i: &str) -> IResult<&str, Expr> {
+    alt((literal, alternatives))(i)
+}
+
+fn rule(i: &str) -> IResult<&str, Rule> {
+    let (i, number) = int(i)?;
+    let (i, _) = tag(": ")(i)?;
+    let (i, body) = body(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Rule { number, body }))
+}
+
+fn message(i: &str) -> IResult<&str, String> {
+    let (i, msg) = alpha1(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, String::from(msg)))
+}
+
+fn input(i: &str) -> IResult<&str, Input> {
+    let (i, rules) = many1(rule)(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, messages) = many1(message)(i)?;
+    Ok((i, Input { rules, messages }))
+}
 
 fn main() {
     let mut input_data = String::new();

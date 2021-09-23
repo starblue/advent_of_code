@@ -4,17 +4,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::anychar;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
 use nom::character::complete::not_line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::recognize;
-use nom::tag;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Debug)]
 struct Record {
@@ -46,31 +45,37 @@ impl fmt::Display for Record {
     }
 }
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(password<&str, String>,
-    map!(recognize!(not_line_ending), String::from)
-);
+fn password(i: &str) -> IResult<&str, String> {
+    map(recognize(not_line_ending), String::from)(i)
+}
 
-named!(record<&str, Record>,
-    do_parse!(
-        n1: int64 >>
-        tag!("-") >>
-        n2: int64 >>
-        tag!(" ") >>
-        c: anychar >>
-        tag!(":") >>
-        password: password >>
-        line_ending >> (Record { n1, n2, c, password })
-    )
-);
+fn record(i: &str) -> IResult<&str, Record> {
+    let (i, n1) = int64(i)?;
+    let (i, _) = tag("-")(i)?;
+    let (i, n2) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, c) = anychar(i)?;
+    let (i, _) = tag(":")(i)?;
+    let (i, password) = password(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Record {
+            n1,
+            n2,
+            c,
+            password,
+        },
+    ))
+}
 
-named!(
-    input<&str, Vec<Record>>,
-    many1!(record)
-);
+fn input(i: &str) -> IResult<&str, Vec<Record>> {
+    many1(record)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

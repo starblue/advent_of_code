@@ -5,18 +5,17 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::none_of;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
+use nom::character::complete::none_of;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Condition {
@@ -105,52 +104,56 @@ impl fmt::Display for Input {
     }
 }
 
-named!(field<&str, String>,
-    map!(recognize!(many1!(none_of!(":"))), String::from)
-);
-named!(int<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(condition<&str, Condition>,
-    do_parse!(
-        min: int >>
-        char!('-') >>
-        max: int >>
-            (Condition { min, max })
-    )
-);
-named!(rule<&str, Rule>,
-    do_parse!(
-        field: field >>
-        tag!(": ") >>
-        alt0: condition >>
-        tag!(" or ") >>
-        alt1: condition >>
-        line_ending >>
-            (Rule { field, alt0, alt1 })
-    )
-);
-named!(ticket<&str, Ticket>,
-    do_parse!(
-        ns: separated_list1!(char!(','), int) >>
-        line_ending >>
-            (Ticket(ns))
-    )
-);
-named!(input<&str, Input>,
-    do_parse!(
-        rules: many1!(rule) >>
-        line_ending >>
-        tag!("your ticket:") >>
-        line_ending >>
-        own_ticket: ticket >>
-        line_ending >>
-        tag!("nearby tickets:") >>
-        line_ending >>
-        nearby_tickets: many1!(ticket) >>
-            (Input { rules, own_ticket, nearby_tickets })
-    )
-);
+fn field(i: &str) -> IResult<&str, String> {
+    map(recognize(many1(none_of(":"))), String::from)(i)
+}
+
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+
+fn condition(i: &str) -> IResult<&str, Condition> {
+    let (i, min) = int(i)?;
+    let (i, _) = char('-')(i)?;
+    let (i, max) = int(i)?;
+    Ok((i, Condition { min, max }))
+}
+
+fn rule(i: &str) -> IResult<&str, Rule> {
+    let (i, field) = field(i)?;
+    let (i, _) = tag(": ")(i)?;
+    let (i, alt0) = condition(i)?;
+    let (i, _) = tag(" or ")(i)?;
+    let (i, alt1) = condition(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Rule { field, alt0, alt1 }))
+}
+
+fn ticket(i: &str) -> IResult<&str, Ticket> {
+    let (i, ns) = separated_list1(char(','), int)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Ticket(ns)))
+}
+
+fn input(i: &str) -> IResult<&str, Input> {
+    let (i, rules) = many1(rule)(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = tag("your ticket:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, own_ticket) = ticket(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = tag("nearby tickets:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, nearby_tickets) = many1(ticket)(i)?;
+    Ok((
+        i,
+        Input {
+            rules,
+            own_ticket,
+            nearby_tickets,
+        },
+    ))
+}
 
 fn main() {
     let mut input_data = String::new();

@@ -7,15 +7,14 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::named;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
+use nom::combinator::map;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Ingredient(String);
@@ -80,49 +79,48 @@ impl fmt::Display for Food {
     }
 }
 
-named!(name<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
+fn name(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
 
-named!(ingredient<&str, Ingredient>,
-    do_parse!(
-        n: name >>
-            (Ingredient(n))
-    )
-);
-named!(ingredients<&str, IngredientList>,
-    do_parse!(
-        is: separated_list1!(tag!(" "), ingredient) >>
-            (IngredientList(is))
-    )
-);
+fn ingredient(i: &str) -> IResult<&str, Ingredient> {
+    let (i, n) = name(i)?;
+    Ok((i, Ingredient(n)))
+}
 
-named!(allergen<&str, Allergen>,
-    do_parse!(
-        n: name >>
-            (Allergen(n))
-    )
-);
-named!(allergens<&str, AllergenList>,
-    do_parse!(
-        is: separated_list1!(tag!(", "), allergen) >>
-            (AllergenList(is))
-    )
-);
+fn ingredients(i: &str) -> IResult<&str, IngredientList> {
+    let (i, is) = separated_list1(tag(" "), ingredient)(i)?;
+    Ok((i, IngredientList(is)))
+}
 
-named!(food<&str, Food>,
-    do_parse!(
-        ingredients: ingredients >>
-        tag!(" (contains ") >>
-        allergens: allergens >>
-        tag!(")") >>
-        line_ending >>
-            (Food { ingredients, allergens })
-    )
-);
-named!(input<&str, Vec<Food>>,
-    many1!(food)
-);
+fn allergen(i: &str) -> IResult<&str, Allergen> {
+    let (i, n) = name(i)?;
+    Ok((i, Allergen(n)))
+}
+
+fn allergens(i: &str) -> IResult<&str, AllergenList> {
+    let (i, is) = separated_list1(tag(", "), allergen)(i)?;
+    Ok((i, AllergenList(is)))
+}
+
+fn food(i: &str) -> IResult<&str, Food> {
+    let (i, ingredients) = ingredients(i)?;
+    let (i, _) = tag(" (contains ")(i)?;
+    let (i, allergens) = allergens(i)?;
+    let (i, _) = tag(")")(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Food {
+            ingredients,
+            allergens,
+        },
+    ))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Food>> {
+    many1(food)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

@@ -6,13 +6,12 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::separated_list1;
-use nom::tag;
+use nom::combinator::map_res;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Deck {
@@ -199,28 +198,30 @@ impl Game {
     }
 }
 
-named!(int<&str, usize>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(deck<&str, Deck>,
-    do_parse!(
-        cards: separated_list1!(line_ending, int) >>
-        line_ending >>
-            (Deck { cards: cards.into() })
-    )
-);
-named!(game_position<&str, GamePosition>,
-    do_parse!(
-        tag!("Player 1:") >>
-        line_ending >>
-        deck1: deck >>
-        line_ending >>
-        tag!("Player 2:") >>
-        line_ending >>
-        deck2: deck >>
-            (GamePosition { deck1, deck2 })
-    )
-);
+fn int(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, FromStr::from_str)(i)
+}
+fn deck(i: &str) -> IResult<&str, Deck> {
+    let (i, cards) = separated_list1(line_ending, int)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Deck {
+            cards: cards.into(),
+        },
+    ))
+}
+
+fn game_position(i: &str) -> IResult<&str, GamePosition> {
+    let (i, _) = tag("Player 1:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, deck1) = deck(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = tag("Player 2:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, deck2) = deck(i)?;
+    Ok((i, GamePosition { deck1, deck2 }))
+}
 
 fn main() {
     let mut input_data = String::new();

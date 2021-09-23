@@ -3,13 +3,12 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
@@ -86,32 +85,28 @@ impl fmt::Display for Tile {
     }
 }
 
-named!(dir<&str, HexDir>,
-    alt!(
-        value!(HexDir::E, tag!("e")) |
-        value!(HexDir::NE, tag!("ne")) |
-        value!(HexDir::NW, tag!("nw")) |
-        value!(HexDir::W, tag!("w")) |
-        value!(HexDir::SW, tag!("sw")) |
-        value!(HexDir::SE, tag!("se"))
-    )
-);
+fn dir(i: &str) -> IResult<&str, HexDir> {
+    alt((
+        value(HexDir::E, tag("e")),
+        value(HexDir::NE, tag("ne")),
+        value(HexDir::NW, tag("nw")),
+        value(HexDir::W, tag("w")),
+        value(HexDir::SW, tag("sw")),
+        value(HexDir::SE, tag("se")),
+    ))(i)
+}
 
-named!(tile<&str, Tile>,
-    do_parse!(
-        dirs: many1!(dir) >>
-        line_ending >>
-            (Tile(dirs))
-    )
-);
+fn tile(i: &str) -> IResult<&str, Tile> {
+    let (i, dirs) = many1(dir)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Tile(dirs)))
+}
 
-named!(input<&str, Vec<Tile>>,
-    do_parse!(
-        tiles: many1!(tile) >>
-        line_ending >>
-            (tiles)
-    )
-);
+fn input(i: &str) -> IResult<&str, Vec<Tile>> {
+    let (i, tiles) = many1(tile)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, tiles))
+}
 
 fn hex_neighbors(p: Point2d) -> Vec<Point2d> {
     DIRS.iter().map(|d| p + d.to_v2d()).collect::<Vec<_>>()

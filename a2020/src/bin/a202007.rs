@@ -6,20 +6,19 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
-use nom::value;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::multi::separated_list1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Color(String, String);
@@ -68,48 +67,49 @@ impl fmt::Display for Rule {
     }
 }
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
-named!(word<&str, String>,
-    map!(recognize!(alpha1), String::from)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(color<&str, Color>,
-    do_parse!(
-        w0: word >>
-        tag!(" ") >>
-        w1: word >> (Color(w0, w1))
-    )
-);
-named!(content_item<&str, ContentItem>,
-    do_parse!(
-        n: int64 >>
-        tag!(" ") >>
-        color: color >>
-        tag!(" bag") >>
-        opt!(tag!("s")) >> (ContentItem { n, color })
-    )
-);
-named!(contents<&str, Vec<ContentItem>>,
-    alt!(
-        value!(Vec::new(), tag!("no other bags")) |
-        separated_list1!(tag!(", "), content_item)
-    )
-);
-named!(rule<&str, Rule>,
-    do_parse!(
-        color: color >>
-        tag!(" bags contain ") >>
-        contents: contents >>
-        tag!(".") >>
-        line_ending >> (Rule { color, contents })
-    )
-);
-named!(
-    input<&str, Vec<Rule>>,
-    many1!(rule)
-);
+fn word(i: &str) -> IResult<&str, String> {
+    map(recognize(alpha1), String::from)(i)
+}
+
+fn color(i: &str) -> IResult<&str, Color> {
+    let (i, w0) = word(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, w1) = word(i)?;
+    Ok((i, Color(w0, w1)))
+}
+
+fn content_item(i: &str) -> IResult<&str, ContentItem> {
+    let (i, n) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, color) = color(i)?;
+    let (i, _) = tag(" bag")(i)?;
+    let (i, _) = opt(tag("s"))(i)?;
+    Ok((i, ContentItem { n, color }))
+}
+
+fn contents(i: &str) -> IResult<&str, Vec<ContentItem>> {
+    alt((
+        value(Vec::new(), tag("no other bags")),
+        separated_list1(tag(", "), content_item),
+    ))(i)
+}
+
+fn rule(i: &str) -> IResult<&str, Rule> {
+    let (i, color) = color(i)?;
+    let (i, _) = tag(" bags contain ")(i)?;
+    let (i, contents) = contents(i)?;
+    let (i, _) = tag(".")(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Rule { color, contents }))
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Rule>> {
+    many1(rule)(i)
+}
 
 fn main() {
     let mut input_data = String::new();
