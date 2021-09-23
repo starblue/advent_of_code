@@ -5,15 +5,14 @@ use std::iter::repeat;
 use std::iter::repeat_with;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
 use nom::character::complete::multispace0;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
+use nom::combinator::map_res;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Op {
@@ -96,72 +95,72 @@ struct Sample {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(regs<&str, Regs>,
-    do_parse!(
-        multispace0 >>
-        char!('[') >>
-        multispace0 >>
-        r0: int64 >>
-        multispace0 >>
-        tag!(",") >>
-        multispace0 >>
-        r1: int64 >>
-        multispace0 >>
-        tag!(",") >>
-        multispace0 >>
-        r2: int64 >>
-        multispace0 >>
-        tag!(",") >>
-        multispace0 >>
-        r3: int64 >>
-        multispace0 >>
-        char!(']') >>
-            (Regs(vec![r0, r1, r2, r3]))
-    )
-);
+fn regs(i: &str) -> IResult<&str, Regs> {
+    let (i, _) = multispace0(i)?;
+    let (i, _) = char('[')(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, r0) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, r1) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, r2) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, r3) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = char(']')(i)?;
+    Ok((i, Regs(vec![r0, r1, r2, r3])))
+}
 
-named!(instr<&str, Instr>,
-    do_parse!(
-        opc: int64 >>
-        tag!(" ") >>
-        a: int64 >>
-        tag!(" ") >>
-        b: int64 >>
-        tag!(" ") >>
-        c: int64 >>
-            (Instr(vec![opc, a, b, c]))
-    )
-);
+fn instr(i: &str) -> IResult<&str, Instr> {
+    let (i, opc) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, a) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, b) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, c) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instr(vec![opc, a, b, c])))
+}
 
-named!(sample<&str, Sample>,
-    do_parse!(
-        multispace0 >>
-        tag!("Before:") >>
-        multispace0 >>
-        before: regs >> line_ending >>
-        instr: instr >> line_ending >>
-        multispace0 >>
-        tag!("After:") >>
-        multispace0 >>
-        after: regs >> line_ending >>
-            (Sample { before, instr, after })
-    )
-);
+fn sample(i: &str) -> IResult<&str, Sample> {
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag("Before:")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, before) = regs(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, instr) = instr(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag("After:")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, after) = regs(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Sample {
+            before,
+            instr,
+            after,
+        },
+    ))
+}
 
-named!(input<&str, (Vec<Sample>, Vec<Instr>)>,
-    do_parse!(
-        samples: many1!(sample) >>
-        many1!(line_ending) >>
-        instrs: many1!(
-            do_parse!(instr: instr >> line_ending >> (instr))
-        ) >>
-            ((samples, instrs))
-    )
-);
+fn input(i: &str) -> IResult<&str, (Vec<Sample>, Vec<Instr>)> {
+    let (i, samples) = many1(sample)(i)?;
+    let (i, _) = many1(line_ending)(i)?;
+    let (i, instrs) = many1(instr)(i)?;
+    Ok((i, (samples, instrs)))
+}
 
 fn main() {
     let mut input_data = String::new();

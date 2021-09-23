@@ -3,17 +3,16 @@ use std::i64;
 use std::io;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::multispace0;
 use nom::character::complete::multispace1;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::sequence::tuple;
+use nom::IResult;
 
 use lowdim::BBox;
 use lowdim::Point2d;
@@ -28,37 +27,42 @@ struct Record {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(
-    vec2d<&str, Vec2d>,
-    do_parse!(
-        char!('<') >>
-        multispace0 >>
-        x: int64 >>
-        multispace0 >>
-        char!(',') >>
-        multispace0 >>
-        y: int64 >>
-        multispace0 >>
-        char!('>') >>
-            (Vec2d::new(x, y)))
-);
+fn vec2d(i: &str) -> IResult<&str, Vec2d> {
+    let (i, _) = char('<')(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, x) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = char(',')(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, y) = int64(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = char('>')(i)?;
+    Ok((i, Vec2d::new(x, y)))
+}
 
-named!(
-    record<&str, Record>,
-    do_parse!(
-        tag!("position=") >>
-        multispace0 >>
-        pos: vec2d >>
-        multispace1 >>
-        tag!("velocity=") >>
-        multispace0 >>
-        v: vec2d >>
-            (Record { pos: Point2d::from(pos), v }))
-);
+fn record(i: &str) -> IResult<&str, Record> {
+    let (i, _) = tag("position=")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, pos) = vec2d(i)?;
+    let (i, _) = multispace1(i)?;
+    let (i, _) = tag("velocity=")(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, v) = vec2d(i)?;
+    Ok((
+        i,
+        Record {
+            pos: Point2d::from(pos),
+            v,
+        },
+    ))
+}
 
 fn pos_at_t(r: &Record, t: i64) -> Point2d {
     r.pos + t * r.v

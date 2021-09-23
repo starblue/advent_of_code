@@ -3,14 +3,13 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Timestamp {
@@ -37,50 +36,58 @@ struct Record {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int32<&str, i32>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int32(i: &str) -> IResult<&str, i32> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(timestamp<&str, Timestamp>,
-    do_parse!(
-        char!('[') >>
-        year: int32 >>
-        char!('-') >>
-        month: int32 >>
-        char!('-') >>
-        day: int32 >>
-        char!(' ') >>
-        hour: int32 >>
-        char!(':') >>
-        minute: int32 >>
-        char!(']') >>
-            (Timestamp { year, month, day, hour, minute })
-    )
-);
+fn timestamp(i: &str) -> IResult<&str, Timestamp> {
+    let (i, _) = char('[')(i)?;
+    let (i, year) = int32(i)?;
+    let (i, _) = char('-')(i)?;
+    let (i, month) = int32(i)?;
+    let (i, _) = char('-')(i)?;
+    let (i, day) = int32(i)?;
+    let (i, _) = char(' ')(i)?;
+    let (i, hour) = int32(i)?;
+    let (i, _) = char(':')(i)?;
+    let (i, minute) = int32(i)?;
+    let (i, _) = char(']')(i)?;
+    Ok((
+        i,
+        Timestamp {
+            year,
+            month,
+            day,
+            hour,
+            minute,
+        },
+    ))
+}
 
-named!(id<&str, i32>, do_parse!(char!('#') >> id: int32 >> (id) ));
+fn id(i: &str) -> IResult<&str, i32> {
+    let (i, _) = char('#')(i)?;
+    let (i, id) = int32(i)?;
+    Ok((i, id))
+}
 
-named!(action<&str, Action>,
-    alt!(
-        value!(Action::FallAsleep, tag!(" falls asleep"))
-            | value!(Action::WakeUp, tag!(" wakes up"))
-            | do_parse!(
-                tag!(" Guard ")
-                    >> id: id
-                    >> tag!(" begins shift")
-                    >> (Action::BeginShift { id })
-            )
-    )
-);
+fn action_begin_shift(i: &str) -> IResult<&str, Action> {
+    let (i, _) = tag(" Guard ")(i)?;
+    let (i, id) = id(i)?;
+    let (i, _) = tag(" begins shift")(i)?;
+    Ok((i, Action::BeginShift { id }))
+}
 
-named!(
-    record<&str, Record>,
-    do_parse!(
-        ts: timestamp
-            >> action: action
-            >> (Record { ts, action })
-    )
-);
+fn action(i: &str) -> IResult<&str, Action> {
+    let p0 = value(Action::FallAsleep, tag(" falls asleep"));
+    let p1 = value(Action::WakeUp, tag(" wakes up"));
+    alt((p0, p1, action_begin_shift))(i)
+}
+
+fn record(i: &str) -> IResult<&str, Record> {
+    let (i, ts) = timestamp(i)?;
+    let (i, action) = action(i)?;
+    Ok((i, Record { ts, action }))
+}
 
 fn main() {
     let mut records = Vec::new();

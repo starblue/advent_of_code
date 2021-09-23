@@ -2,13 +2,12 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::char;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
 use nom::character::complete::multispace1;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
+use nom::combinator::map_res;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
@@ -27,43 +26,45 @@ struct Record {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(
-    id<&str, i64>,
-    do_parse!(char!('#') >> id: int >> (id) )
-);
+fn id(i: &str) -> IResult<&str, i64> {
+    let (i, _) = char('#')(i)?;
+    let (i, id) = int(i)?;
+    Ok((i, id))
+}
 
-named!(
-    position<&str, Point2d>,
-    do_parse!(x: int >> char!(',') >> y: int >> (p2d(x, y)))
-);
+fn position(i: &str) -> IResult<&str, Point2d> {
+    let (i, x) = int(i)?;
+    let (i, _) = char(',')(i)?;
+    let (i, y) = int(i)?;
+    Ok((i, p2d(x, y)))
+}
 
-named!(
-    size<&str, Vec2d>,
-    do_parse!(x: int >> char!('x') >> y: int >> (v2d(x, y)))
-);
+fn size(i: &str) -> IResult<&str, Vec2d> {
+    let (i, x) = int(i)?;
+    let (i, _) = char('x')(i)?;
+    let (i, y) = int(i)?;
+    Ok((i, v2d(x, y)))
+}
 
-named!(
-    record<&str, Record>,
-    do_parse!(
-        id: id >>
-        multispace1 >>
-        char!('@') >>
-        multispace1 >>
-        pos: position >>
-        char!(':') >>
-        multispace1 >>
-        size: size >>
-        line_ending >>
-            ({
-                let bbox = BBox::new(pos, size);
-                Record { id, bbox }
-            })
-    )
-);
+fn record(i: &str) -> IResult<&str, Record> {
+    let (i, id) = id(i)?;
+    let (i, _) = multispace1(i)?;
+    let (i, _) = char('@')(i)?;
+    let (i, _) = multispace1(i)?;
+    let (i, pos) = position(i)?;
+    let (i, _) = char(':')(i)?;
+    let (i, _) = multispace1(i)?;
+    let (i, size) = size(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, {
+        let bbox = BBox::new(pos, size);
+        Record { id, bbox }
+    }))
+}
 
 fn main() {
     let mut records = Vec::new();

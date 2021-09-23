@@ -5,21 +5,18 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::alt;
-use nom::call;
-use nom::char;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::named_args;
-use nom::opt;
-use nom::recognize;
-use nom::separated_list1;
-use nom::tag;
-use nom::tuple;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::combinator::value;
+use nom::multi::separated_list1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Side {
@@ -122,119 +119,140 @@ impl Ord for SelectionPriority {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(
-    int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(attack_type<&str, AttackType>,
-    alt!(
-        value!(AttackType::Bludgeoning, tag!("bludgeoning")) |
-        value!(AttackType::Cold, tag!("cold")) |
-        value!(AttackType::Fire, tag!("fire")) |
-        value!(AttackType::Radiation, tag!("radiation")) |
-        value!(AttackType::Slashing, tag!("slashing"))
-    )
-);
+fn attack_type(i: &str) -> IResult<&str, AttackType> {
+    alt((
+        value(AttackType::Bludgeoning, tag("bludgeoning")),
+        value(AttackType::Cold, tag("cold")),
+        value(AttackType::Fire, tag("fire")),
+        value(AttackType::Radiation, tag("radiation")),
+        value(AttackType::Slashing, tag("slashing")),
+    ))(i)
+}
 
-named!(
-    attack_types<&str, HashSet<AttackType>>,
-    do_parse!(
-        attack_types: separated_list1!(tag!(", "), attack_type) >>
-            (attack_types.into_iter().collect::<HashSet<_>>())
-    )
-);
+fn attack_types(i: &str) -> IResult<&str, HashSet<AttackType>> {
+    let (i, attack_types) = separated_list1(tag(", "), attack_type)(i)?;
+    Ok((i, attack_types.into_iter().collect::<HashSet<_>>()))
+}
 
-named!(
-    weaknesses<&str, HashSet<AttackType>>,
-    do_parse!(
-        tag!("weak to ") >>
-        attack_types: attack_types >>
-            (attack_types)
-    )
-);
+fn weaknesses(i: &str) -> IResult<&str, HashSet<AttackType>> {
+    let (i, _) = tag("weak to ")(i)?;
+    let (i, attack_types) = attack_types(i)?;
+    Ok((i, attack_types))
+}
 
-named!(
-    immunities<&str, HashSet<AttackType>>,
-    do_parse!(
-        tag!("immune to ") >>
-        attack_types: attack_types >>
-            (attack_types)
-    )
-);
+fn immunities(i: &str) -> IResult<&str, HashSet<AttackType>> {
+    let (i, _) = tag("immune to ")(i)?;
+    let (i, attack_types) = attack_types(i)?;
+    Ok((i, attack_types))
+}
 
-named!(
-    opt_weaknesses_immunities_clause<&str, (HashSet<AttackType>, HashSet<AttackType>)>,
-    alt!(
-        do_parse!(
-            tag!("(") >>
-            weaknesses: weaknesses >>
-            tag!(") ") >>
-                (weaknesses, HashSet::new())
-        ) |
-        do_parse!(
-            tag!("(") >>
-            immunities: immunities >>
-            tag!(") ") >>
-                (HashSet::new(), immunities)
-        ) |
-        do_parse!(
-            tag!("(") >>
-            weaknesses: weaknesses >>
-            tag!("; ") >>
-            immunities: immunities >>
-            tag!(") ") >>
-                (weaknesses, immunities)
-        ) |
-        do_parse!(
-            tag!("(") >>
-            immunities: immunities >>
-            tag!("; ") >>
-            weaknesses: weaknesses >>
-            tag!(") ") >>
-                (weaknesses, immunities)
-        ) |
-        value!((HashSet::new(), HashSet::new()), tag!(""))
-    )
-);
+fn opt_weaknesses_immunities_clause_w(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    let (i, _) = tag("(")(i)?;
+    let (i, weaknesses) = weaknesses(i)?;
+    let (i, _) = tag(") ")(i)?;
+    Ok((i, (weaknesses, HashSet::new())))
+}
 
-named_args!(
-    group(side: Side)<&str, Group>,
-    do_parse!(
-        n: int64 >>
-        tag!(" units each with ") >>
-        hit_points: int64 >>
-        tag!(" hit points ") >>
-        wais: opt_weaknesses_immunities_clause >>
-        tag!("with an attack that does ") >>
-        attack_damage: int64 >>
-        tag!(" ") >>
-        attack_type: attack_type >>
-        tag!(" damage at initiative ") >>
-        initiative: int64 >>
-            (Group { side, n, hit_points, attack_damage, attack_type, initiative, weaknesses: wais.0, immunities: wais.1 })
-    )
-);
+fn opt_weaknesses_immunities_clause_i(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    let (i, _) = tag("(")(i)?;
+    let (i, immunities) = immunities(i)?;
+    let (i, _) = tag(") ")(i)?;
+    Ok((i, (HashSet::new(), immunities)))
+}
 
-named_args!(
-    army(side: Side)<&str, Vec<Group>>,
-    separated_list1!(line_ending, call!(group, side))
-);
+fn opt_weaknesses_immunities_clause_wi(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    let (i, _) = tag("(")(i)?;
+    let (i, weaknesses) = weaknesses(i)?;
+    let (i, _) = tag("; ")(i)?;
+    let (i, immunities) = immunities(i)?;
+    let (i, _) = tag(") ")(i)?;
+    Ok((i, (weaknesses, immunities)))
+}
 
-named!(
-    input<&str, (Vec<Group>, Vec<Group>)>,
-    do_parse!(
-        tag!("Immune System:") >>
-        line_ending >>
-        army1: call!(army, Side::ImmuneSystem) >>
-        line_ending >>
-        line_ending >>
-        tag!("Infection:") >>
-        line_ending >>
-        army2: call!(army, Side::Infection) >>
-            ((army1, army2))
-    )
-);
+fn opt_weaknesses_immunities_clause_iw(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    let (i, _) = tag("(")(i)?;
+    let (i, immunities) = immunities(i)?;
+    let (i, _) = tag("; ")(i)?;
+    let (i, weaknesses) = weaknesses(i)?;
+    let (i, _) = tag(") ")(i)?;
+    Ok((i, (weaknesses, immunities)))
+}
+
+fn opt_weaknesses_immunities_clause_none(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    value((HashSet::new(), HashSet::new()), tag(""))(i)
+}
+
+fn opt_weaknesses_immunities_clause(
+    i: &str,
+) -> IResult<&str, (HashSet<AttackType>, HashSet<AttackType>)> {
+    alt((
+        opt_weaknesses_immunities_clause_w,
+        opt_weaknesses_immunities_clause_i,
+        opt_weaknesses_immunities_clause_wi,
+        opt_weaknesses_immunities_clause_iw,
+        opt_weaknesses_immunities_clause_none,
+    ))(i)
+}
+
+fn group(side: Side, i: &str) -> IResult<&str, Group> {
+    let (i, n) = int64(i)?;
+    let (i, _) = tag(" units each with ")(i)?;
+    let (i, hit_points) = int64(i)?;
+    let (i, _) = tag(" hit points ")(i)?;
+    let (i, wais) = opt_weaknesses_immunities_clause(i)?;
+    let (i, _) = tag("with an attack that does ")(i)?;
+    let (i, attack_damage) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, attack_type) = attack_type(i)?;
+    let (i, _) = tag(" damage at initiative ")(i)?;
+    let (i, initiative) = int64(i)?;
+    Ok((
+        i,
+        Group {
+            side,
+            n,
+            hit_points,
+            attack_damage,
+            attack_type,
+            initiative,
+            weaknesses: wais.0,
+            immunities: wais.1,
+        },
+    ))
+}
+
+fn army<'a>(side: Side, i: &'a str) -> IResult<&'a str, Vec<Group>> {
+    separated_list1(line_ending, |i: &'a str| group(side, i))(i)
+}
+
+fn input(i: &str) -> IResult<&str, (Vec<Group>, Vec<Group>)> {
+    let (i, _) = tag("Immune System:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, army1) = army(Side::ImmuneSystem, i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = tag("Infection:")(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, army2) = army(Side::Infection, i)?;
+    Ok((i, (army1, army2)))
+}
 
 /// Run the fight until no change occurs.
 ///

@@ -4,15 +4,14 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::combinator::map_res;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Op {
@@ -116,62 +115,55 @@ impl fmt::Display for Instr {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(ip_decl<&str, i64>,
-    do_parse!(
-        tag!("#ip ") >>
-        ip: int64 >>
-            (ip)
-    )
-);
+fn ip_decl(i: &str) -> IResult<&str, i64> {
+    let (i, _) = tag("#ip ")(i)?;
+    let (i, ip) = int64(i)?;
+    Ok((i, ip))
+}
 
-named!(op<&str, Op>,
-    alt!(
-        value!(Op::Addi, tag!("addi")) |
-        value!(Op::Addr, tag!("addr")) |
-        value!(Op::Muli, tag!("muli")) |
-        value!(Op::Mulr, tag!("mulr")) |
-        value!(Op::Bani, tag!("bani")) |
-        value!(Op::Banr, tag!("banr")) |
-        value!(Op::Bori, tag!("bori")) |
-        value!(Op::Borr, tag!("borr")) |
-        value!(Op::Seti, tag!("seti")) |
-        value!(Op::Setr, tag!("setr")) |
-        value!(Op::Gtir, tag!("gtir")) |
-        value!(Op::Gtri, tag!("gtri")) |
-        value!(Op::Gtrr, tag!("gtrr")) |
-        value!(Op::Eqir, tag!("eqir")) |
-        value!(Op::Eqri, tag!("eqri")) |
-        value!(Op::Eqrr, tag!("eqrr"))
-    )
-);
+fn op(i: &str) -> IResult<&str, Op> {
+    alt((
+        value(Op::Addi, tag("addi")),
+        value(Op::Addr, tag("addr")),
+        value(Op::Muli, tag("muli")),
+        value(Op::Mulr, tag("mulr")),
+        value(Op::Bani, tag("bani")),
+        value(Op::Banr, tag("banr")),
+        value(Op::Bori, tag("bori")),
+        value(Op::Borr, tag("borr")),
+        value(Op::Seti, tag("seti")),
+        value(Op::Setr, tag("setr")),
+        value(Op::Gtir, tag("gtir")),
+        value(Op::Gtri, tag("gtri")),
+        value(Op::Gtrr, tag("gtrr")),
+        value(Op::Eqir, tag("eqir")),
+        value(Op::Eqri, tag("eqri")),
+        value(Op::Eqrr, tag("eqrr")),
+    ))(i)
+}
 
-named!(instr<&str, Instr>,
-    do_parse!(
-        op: op >>
-        tag!(" ") >>
-        a: int64 >>
-        tag!(" ") >>
-        b: int64 >>
-        tag!(" ") >>
-        c: int64 >>
-            (Instr{op, a, b, c})
-    )
-);
+fn instr(i: &str) -> IResult<&str, Instr> {
+    let (i, op) = op(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, a) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, b) = int64(i)?;
+    let (i, _) = tag(" ")(i)?;
+    let (i, c) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, Instr { op, a, b, c }))
+}
 
-named!(input<&str, (i64, Vec<Instr>)>,
-    do_parse!(
-        ip: ip_decl >>
-        line_ending >>
-        instrs: many1!(
-            do_parse!(instr: instr >> line_ending >> (instr))
-        ) >>
-            ((ip, instrs))
-    )
-);
+fn input(i: &str) -> IResult<&str, (i64, Vec<Instr>)> {
+    let (i, ip) = ip_decl(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, instrs) = many1(instr)(i)?;
+    Ok((i, (ip, instrs)))
+}
 
 fn run(ip_reg: i64, instrs: &[Instr], regs: &mut Regs) {
     let mut ip = 0;

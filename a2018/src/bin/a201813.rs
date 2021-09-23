@@ -2,13 +2,12 @@ use std::fmt;
 use std::io;
 use std::io::Read;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::v2d;
@@ -199,55 +198,55 @@ impl fmt::Display for State {
     }
 }
 
-named!(track<&str, Track>,
-    alt!(
-        value!(Track::Empty, char!(' ')) |
-        value!(Track::PathNS, char!('|')) |
-        value!(Track::PathEW, char!('-')) |
-        value!(Track::CurveUp, char!('/')) |
-        value!(Track::CurveDn, char!('\\')) |
-        value!(Track::Crossing, char!('+'))
-    )
-);
+fn track(i: &str) -> IResult<&str, Track> {
+    let p0 = value(Track::Empty, char(' '));
+    let p1 = value(Track::PathNS, char('|'));
+    let p2 = value(Track::PathEW, char('-'));
+    let p3 = value(Track::CurveUp, char('/'));
+    let p4 = value(Track::CurveDn, char('\\'));
+    let p5 = value(Track::Crossing, char('+'));
+    alt((p0, p1, p2, p3, p4, p5))(i)
+}
 
-named!(cart<&str, Cart>,
-    do_parse!(
-        dir: alt!(
-            value!(Direction::E, char!('>')) |
-            value!(Direction::N, char!('^')) |
-            value!(Direction::W, char!('<')) |
-            value!(Direction::S, char!('v'))
-        ) >> (Cart::new(dir))
-    )
-);
+fn cart(i: &str) -> IResult<&str, Cart> {
+    let p0 = value(Direction::E, char('>'));
+    let p1 = value(Direction::N, char('^'));
+    let p2 = value(Direction::W, char('<'));
+    let p3 = value(Direction::S, char('v'));
+    let (i, dir) = alt((p0, p1, p2, p3))(i)?;
+    Ok((i, Cart::new(dir)))
+}
 
-named!(square<&str, Square>,
-    alt!(
-        do_parse!(
-            track: track >> (Square { track, cart: None } )
-        ) |
-        do_parse!(
-            cart: cart >> ({
-                let track = cart.dir.to_track();
-                Square { track, cart: Some(cart) }})
-        )
-    )
-);
+fn square_track(i: &str) -> IResult<&str, Square> {
+    let (i, track) = track(i)?;
+    Ok((i, Square { track, cart: None }))
+}
 
-named!(
-    line<&str, Vec<Square>>,
-    many1!(square)
-);
+fn square_cart(i: &str) -> IResult<&str, Square> {
+    let (i, cart) = cart(i)?;
+    let track = cart.dir.to_track();
+    Ok((
+        i,
+        Square {
+            track,
+            cart: Some(cart),
+        },
+    ))
+}
 
-named!(
-    lines<&str, Vec<Vec<Square>>>,
-    many1!(
-        do_parse!(
-            line: line >>
-            line_ending >> (line)
-        )
-    )
-);
+fn square(i: &str) -> IResult<&str, Square> {
+    alt((square_track, square_cart))(i)
+}
+
+fn line(i: &str) -> IResult<&str, Vec<Square>> {
+    let (i, line) = many1(square)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, line))
+}
+
+fn lines(i: &str) -> IResult<&str, Vec<Vec<Square>>> {
+    many1(line)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

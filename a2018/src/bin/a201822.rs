@@ -5,12 +5,11 @@ use std::io::Read;
 use std::rc::Rc;
 use std::str::FromStr;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::tag;
+use nom::combinator::map_res;
+use nom::IResult;
 
 use pathfinding::prelude::astar;
 
@@ -23,23 +22,21 @@ use lowdim::Vec2d;
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(input<&str, (i64, Point2d)>,
-    do_parse!(
-        tag!("depth: ") >>
-        depth: int64 >>
-        line_ending >>
-        tag!("target: ") >>
-        x: int64 >>
-        tag!(",") >>
-        y: int64 >>
-        line_ending >>
-            ((depth, p2d(x, y)))
-    )
-);
+fn input(i: &str) -> IResult<&str, (i64, Point2d)> {
+    let (i, _) = tag("depth: ")(i)?;
+    let (i, depth) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    let (i, _) = tag("target: ")(i)?;
+    let (i, x) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, y) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, (depth, p2d(x, y))))
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum ToolState {

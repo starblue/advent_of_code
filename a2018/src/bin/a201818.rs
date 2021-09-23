@@ -5,12 +5,11 @@ use std::io::Read;
 use std::iter::repeat;
 use std::iter::repeat_with;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct State {
@@ -34,27 +33,19 @@ impl fmt::Display for State {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(cell<&str, char>,
-    alt!(
-        char!('.') |
-        char!('|') |
-        char!('#')
-    )
-);
+fn cell(i: &str) -> IResult<&str, char> {
+    alt((char('.'), char('|'), char('#')))(i)
+}
 
-named!(line<&str, Vec<char>>,
-    many1!(cell)
-);
+fn line(i: &str) -> IResult<&str, Vec<char>> {
+    let (i, line) = many1(cell)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, line))
+}
 
-named!(cells<&str, Vec<Vec<char>>>,
-    many1!(
-        do_parse!(
-            line: line >>
-            line_ending >>
-                (line)
-        )
-    )
-);
+fn cells(i: &str) -> IResult<&str, Vec<Vec<char>>> {
+    many1(line)(i)
+}
 
 impl State {
     fn step(&self) -> State {

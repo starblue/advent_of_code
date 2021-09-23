@@ -3,17 +3,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 use lowdim::p4d;
 use lowdim::Point4d;
@@ -21,32 +20,28 @@ use lowdim::Point4d;
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(point<&str, Point4d>,
-    do_parse!(
-        x: int64 >>
-        tag!(",") >>
-        y: int64 >>
-        tag!(",") >>
-        z: int64 >>
-        tag!(",") >>
-        u: int64 >>
-            (p4d(x, y, z, u))
-    )
-);
+fn point(i: &str) -> IResult<&str, Point4d> {
+    let (i, x) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, y) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, z) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, u) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, p4d(x, y, z, u)))
+}
 
-named!(points<&str, Vec<Point4d>>,
-    many1!(
-        do_parse!(
-            p: point >>
-            line_ending >>
-                (p)
-        )
-    )
-);
+fn points(i: &str) -> IResult<&str, Vec<Point4d>> {
+    many1(point)(i)
+}
 
 fn find(reprs: &mut Vec<usize>, i: usize) -> usize {
     let mut i = i;

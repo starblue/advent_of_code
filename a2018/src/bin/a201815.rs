@@ -7,13 +7,12 @@ use std::io;
 use std::io::Read;
 use std::rc::Rc;
 
-use nom::alt;
-use nom::char;
+use nom::branch::alt;
+use nom::character::complete::char;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::named;
-use nom::value;
+use nom::combinator::value;
+use nom::multi::many1;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::Array2d;
@@ -342,27 +341,23 @@ impl fmt::Display for State {
     }
 }
 
-named!(square<&str, Square>,
-    alt!(
-        value!(Square::Open, char!('.')) |
-        value!(Square::Wall, char!('#')) |
-        value!(Square::Unit(UnitType::Goblin), char!('G')) |
-        value!(Square::Unit(UnitType::Elf), char!('E'))
-    )
-);
+fn square(i: &str) -> IResult<&str, Square> {
+    let p0 = value(Square::Open, char('.'));
+    let p1 = value(Square::Wall, char('#'));
+    let p2 = value(Square::Unit(UnitType::Goblin), char('G'));
+    let p3 = value(Square::Unit(UnitType::Elf), char('E'));
+    alt((p0, p1, p2, p3))(i)
+}
 
-named!(line<&str, Vec<Square>>,
-    many1!(square)
-);
+fn line(i: &str) -> IResult<&str, Vec<Square>> {
+    let (i, line) = many1(square)(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, line))
+}
 
-named!(lines<&str, Vec<Vec<Square>>>,
-    many1!(
-        do_parse!(
-            line: line >>
-            line_ending >> (line)
-        )
-    )
-);
+fn lines(i: &str) -> IResult<&str, Vec<Vec<Square>>> {
+    many1(line)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

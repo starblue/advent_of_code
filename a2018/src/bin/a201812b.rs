@@ -2,14 +2,13 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io;
 
-use nom::alt;
-use nom::char;
-use nom::do_parse;
-use nom::many0;
-use nom::many_m_n;
-use nom::named;
-use nom::tag;
-use nom::value;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
+use nom::combinator::value;
+use nom::multi::many0;
+use nom::multi::many_m_n;
+use nom::IResult;
 
 const STEPS: i64 = 50_000_000_000;
 
@@ -22,24 +21,24 @@ struct Rule {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(pot<&str, bool>,
-    alt!(
-        value!(true, char!('#')) |
-        value!(false, char!('.'))
-    )
-);
+fn pot(i: &str) -> IResult<&str, bool> {
+    let p0 = value(true, char('#'));
+    let p1 = value(false, char('.'));
+    alt((p0, p1))(i)
+}
 
-named!(initial_state<&str, Vec<bool>>,
-    do_parse!(tag!("initial state: ") >> v: many0!(pot) >> (v))
-);
+fn initial_state(i: &str) -> IResult<&str, Vec<bool>> {
+    let (i, _) = tag("initial state: ")(i)?;
+    let (i, v) = many0(pot)(i)?;
+    Ok((i, v))
+}
 
-named!(rule<&str, Rule>,
-    do_parse!(
-        left: many_m_n!(5, 5, pot) >>
-            tag!(" => ") >>
-            right: pot >> (Rule { left, right })
-    )
-);
+fn rule(i: &str) -> IResult<&str, Rule> {
+    let (i, left) = many_m_n(5, 5, pot)(i)?;
+    let (i, _) = tag(" => ")(i)?;
+    let (i, right) = pot(i)?;
+    Ok((i, Rule { left, right }))
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct State {

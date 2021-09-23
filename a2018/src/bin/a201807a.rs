@@ -1,24 +1,24 @@
 use std::collections::HashSet;
 use std::io;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
-use nom::do_parse;
-use nom::named;
-use nom::tag;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Before(char, char);
 
-named!(record<&str, Before>,
-       do_parse!(
-           tag!("Step ")
-               >>step0: alpha1
-               >> tag!(" must be finished before step ")
-               >>step1: alpha1
-               >> tag!(" can begin.")
-               >> (Before(step0.chars().next().unwrap(), step1.chars().next().unwrap()))
-       )
-);
+fn record(i: &str) -> IResult<&str, Before> {
+    let (i, _) = tag("Step ")(i)?;
+    let (i, step0) = alpha1(i)?;
+    let (i, _) = tag(" must be finished before step ")(i)?;
+    let (i, step1) = alpha1(i)?;
+    let (i, _) = tag(" can begin.")(i)?;
+    Ok((
+        i,
+        Before(step0.chars().next().unwrap(), step1.chars().next().unwrap()),
+    ))
+}
 
 fn main() {
     let mut records = Vec::new();

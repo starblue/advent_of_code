@@ -2,11 +2,10 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
-use nom::tag;
+use nom::combinator::map_res;
+use nom::IResult;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Config {
@@ -16,19 +15,23 @@ struct Config {
 
 // 459 players; last marble is worth 71790 points
 
-named!(int32<&str, i32>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int32(i: &str) -> IResult<&str, i32> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(config<&str, Config>,
-       do_parse!(
-           n_players: int32
-               >> tag!(" players; last marble is worth ")
-               >> last_marble: int32
-               >> tag!(" points")
-               >> (Config{ n_players, last_marble })
-       )
-);
+fn config(i: &str) -> IResult<&str, Config> {
+    let (i, n_players) = int32(i)?;
+    let (i, _) = tag(" players; last marble is worth ")(i)?;
+    let (i, last_marble) = int32(i)?;
+    let (i, _) = tag(" points")(i)?;
+    Ok((
+        i,
+        Config {
+            n_players,
+            last_marble,
+        },
+    ))
+}
 
 fn main() {
     let mut line = String::new();

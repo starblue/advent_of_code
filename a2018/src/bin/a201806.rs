@@ -2,29 +2,26 @@ use std::io;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::char;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::multispace1;
-use nom::do_parse;
-use nom::map_res;
-use nom::named;
+use nom::combinator::map_res;
+use nom::IResult;
 
 use lowdim::p2d;
 use lowdim::Point2d;
 
-named!(int<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(
-    position<&str, Point2d>,
-    do_parse!(
-        x: int >>
-        char!(',') >>
-        multispace1 >>
-        y: int >>
-            (p2d(x, y)))
-);
+fn position(i: &str) -> IResult<&str, Point2d> {
+    let (i, x) = int(i)?;
+    let (i, _) = char(',')(i)?;
+    let (i, _) = multispace1(i)?;
+    let (i, y) = int(i)?;
+    Ok((i, p2d(x, y)))
+}
 
 fn main() {
     let mut positions = Vec::new();

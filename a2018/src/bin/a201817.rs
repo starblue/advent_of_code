@@ -3,14 +3,13 @@ use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
-use nom::alt;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::tag;
+use nom::combinator::map_res;
+use nom::multi::many1;
+use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Vein {
@@ -23,38 +22,57 @@ struct Vein {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(digit1, FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(digit1, FromStr::from_str)(i)
+}
 
-named!(vein<&str, Vein>,
-    alt!(
-        do_parse!(
-            tag!("x=") >>
-            x: int64 >>
-            tag!(", ") >>
-            tag!("y=") >>
-            y0: int64 >>
-            tag!("..") >>
-            y1: int64 >>
-            line_ending >>
-                (Vein { x0: x, x1: x, y0, y1 })
-        ) |
-        do_parse!(
-            tag!("y=") >>
-            y: int64 >>
-            tag!(", ") >>
-            tag!("x=") >>
-            x0: int64 >>
-            tag!("..") >>
-            x1: int64 >>
-            line_ending >>
-                (Vein { x0, x1, y0: y, y1: y })
-        )
-    )
-);
+fn vein_x(i: &str) -> IResult<&str, Vein> {
+    let (i, _) = tag("x=")(i)?;
+    let (i, x) = int64(i)?;
+    let (i, _) = tag(", ")(i)?;
+    let (i, _) = tag("y=")(i)?;
+    let (i, y0) = int64(i)?;
+    let (i, _) = tag("..")(i)?;
+    let (i, y1) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Vein {
+            x0: x,
+            x1: x,
+            y0,
+            y1,
+        },
+    ))
+}
 
-named!(input<&str, Vec<Vein>>, many1!(vein));
+fn vein_y(i: &str) -> IResult<&str, Vein> {
+    let (i, _) = tag("y=")(i)?;
+    let (i, y) = int64(i)?;
+    let (i, _) = tag(", ")(i)?;
+    let (i, _) = tag("x=")(i)?;
+    let (i, x0) = int64(i)?;
+    let (i, _) = tag("..")(i)?;
+    let (i, x1) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Vein {
+            x0,
+            x1,
+            y0: y,
+            y1: y,
+        },
+    ))
+}
+
+fn vein(i: &str) -> IResult<&str, Vein> {
+    alt((vein_x, vein_y))(i)
+}
+
+fn input(i: &str) -> IResult<&str, Vec<Vein>> {
+    many1(vein)(i)
+}
 
 fn main() {
     let mut input_data = String::new();

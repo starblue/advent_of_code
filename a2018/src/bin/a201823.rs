@@ -4,17 +4,16 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use nom::char;
+use nom::bytes::complete::tag;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
 use nom::character::complete::line_ending;
-use nom::do_parse;
-use nom::many1;
-use nom::map_res;
-use nom::named;
-use nom::opt;
-use nom::recognize;
-use nom::tag;
-use nom::tuple;
+use nom::combinator::map_res;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::multi::many1;
+use nom::sequence::tuple;
+use nom::IResult;
 
 use lowdim::p3d;
 use lowdim::Point3d;
@@ -40,33 +39,35 @@ impl fmt::Display for Nanobot {
 #[derive(Clone, Debug)]
 enum Error {}
 
-named!(int64<&str, i64>,
-    map_res!(recognize!(tuple!(opt!(char!('-')), digit1)), FromStr::from_str)
-);
+fn int64(i: &str) -> IResult<&str, i64> {
+    map_res(
+        recognize(tuple((opt(char('-')), digit1))),
+        FromStr::from_str,
+    )(i)
+}
 
-named!(nanobot<&str, Nanobot>,
-    do_parse!(
-        tag!("pos=<") >>
-        x: int64 >>
-        tag!(",") >>
-        y: int64 >>
-        tag!(",") >>
-        z: int64 >>
-        tag!(">, r=") >>
-        r: int64 >>
-            (Nanobot { pos: p3d(x, y, z), r })
-    )
-);
+fn nanobot(i: &str) -> IResult<&str, Nanobot> {
+    let (i, _) = tag("pos=<")(i)?;
+    let (i, x) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, y) = int64(i)?;
+    let (i, _) = tag(",")(i)?;
+    let (i, z) = int64(i)?;
+    let (i, _) = tag(">, r=")(i)?;
+    let (i, r) = int64(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((
+        i,
+        Nanobot {
+            pos: p3d(x, y, z),
+            r,
+        },
+    ))
+}
 
-named!(nanobots<&str, Vec<Nanobot>>,
-    many1!(
-        do_parse!(
-            bot: nanobot >>
-            line_ending >>
-                (bot)
-        )
-    )
-);
+fn nanobots(i: &str) -> IResult<&str, Vec<Nanobot>> {
+    many1(nanobot)(i)
+}
 
 fn main() {
     let mut input_data = String::new();
