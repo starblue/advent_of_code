@@ -385,9 +385,8 @@ fn main() {
             log_states: false,
         };
         let mut state = State::from_map(map.clone(), config);
-        match state.run() {
-            Ok(result) => break result,
-            _ => (),
+        if let Ok(result) = state.run() {
+            break result;
         }
         eap += 1;
     };
