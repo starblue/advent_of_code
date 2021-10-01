@@ -5,6 +5,7 @@ version = "0.1.0"
 authors = ["Juergen Stuber <juergen@jstuber.net>"]
 
 [dependencies]
+json = "0.12.4"
 lowdim = "0.2.3"
 md5 = "0.7.0"
 nom = "7.0.0"
