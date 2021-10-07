@@ -51,8 +51,8 @@ fn lines(i: &str) -> IResult<&str, Vec<Vec<Cell>>> {
 
 fn is_corner(map: &Array2d<i32, Cell>, p: Point2d<i32>) -> bool {
     let bounds = map.bounds();
-    (p.x() == bounds.x0() || p.x() == bounds.x1() - 1)
-        && (p.y() == bounds.y0() || p.y() == bounds.y1() - 1)
+    (p.x() == bounds.x_min() || p.x() == bounds.x_max())
+        && (p.y() == bounds.y_min() || p.y() == bounds.y_max())
 }
 
 fn main() {
@@ -80,7 +80,7 @@ fn main() {
 
     let mut map = Array2d::<i32, _>::from_vec(input.clone());
     for _ in 0..steps {
-        let new_map = Array2d::new_with(map.bounds(), |p| {
+        let new_map = Array2d::with(map.bounds(), |p| {
             let count = p
                 .neighbors_l_infty()
                 .iter()
@@ -98,7 +98,7 @@ fn main() {
 
     let mut map = Array2d::<i32, _>::from_vec(input);
     for _ in 0..steps {
-        let new_map = Array2d::new_with(map.bounds(), |p| {
+        let new_map = Array2d::with(map.bounds(), |p| {
             let count = p
                 .neighbors_l_infty()
                 .iter()
