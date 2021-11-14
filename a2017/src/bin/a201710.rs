@@ -1,7 +1,7 @@
 use std::io;
 
-use a2017::knot_hash;
-use a2017::KnotHashState;
+use util::knot_hash;
+use util::KnotHashState;
 
 fn bytes_to_string(input: &[u8]) -> String {
     let mut result = String::new();
