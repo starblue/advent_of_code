@@ -1,0 +1,8 @@
+[package]
+name = "util"
+version = "0.1.0"
+edition = "2021"
+description = "Utilities for Advent of Code"
+authors = ["Juergen Stuber <juergen@jstuber.net>"]
+
+[dependencies]
