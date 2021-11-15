@@ -228,7 +228,6 @@ fn main() {
 mod tests {
     use crate::field;
     use crate::pair;
-    use crate::value;
     use crate::Field;
 
     #[test]
@@ -239,11 +238,6 @@ mod tests {
     #[test]
     fn test_field_hcl() {
         assert_eq!(Field::Hcl, field("hcl").unwrap().1);
-    }
-
-    #[test]
-    fn test_value() {
-        assert_eq!("5d90f0".to_string(), value("5d90f0 ").unwrap().1);
     }
 
     #[test]

@@ -226,9 +226,9 @@ mod test {
         assert_eq!(
             instr("addi 1 2 3\n"),
             Ok((
-                "\n",
+                "",
                 Instr {
-                    op: Op::ADDI,
+                    op: Op::Addi,
                     a: 1,
                     b: 2,
                     c: 3

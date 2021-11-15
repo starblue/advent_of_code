@@ -454,8 +454,8 @@ mod test {
     fn test_parse_group() {
         assert_eq!(
             group(
+                Side::ImmuneSystem,
                 "8138 units each with 8987 hit points with an attack that does 10 bludgeoning damage at initiative 2\n",
-                Side::ImmuneSystem
             ),
             Ok(("\n", Group {
                 side: Side::ImmuneSystem,

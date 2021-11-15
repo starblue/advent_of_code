@@ -211,7 +211,7 @@ mod test {
 
     #[test]
     fn test_instr() {
-        assert_eq!(instr("0 1 2 3\n"), Ok(("\n", Instr(vec![0, 1, 2, 3]))));
+        assert_eq!(instr("0 1 2 3\n"), Ok(("", Instr(vec![0, 1, 2, 3]))));
     }
 
     #[test]
