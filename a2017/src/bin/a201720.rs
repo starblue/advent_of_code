@@ -39,7 +39,9 @@ impl Particle {
         let p = self.p + v;
         Particle { id, p, v, a }
     }
-    fn can_collide(&self, other: &Particle) -> bool {
+    /// Returns `true` if it can be proven that two particles can't collide,
+    /// and `false` if they may or may not collide.
+    fn cant_collide(&self, other: &Particle) -> bool {
         let sa = (self.a - other.a).signum();
         let sv = (self.v - other.v).signum();
         let sp = (self.p - other.p).signum();
@@ -59,8 +61,7 @@ impl Particle {
         let cant_collide_z = sp.z() != 0
             && ((sa.z() == 0 && sv.z() == 0) || sv.z() == sp.z())
             && (sa.z() == 0 || sa.z() == sv.z());
-        let cant_collide = cant_collide_x || cant_collide_y || cant_collide_z;
-        !cant_collide
+        cant_collide_x || cant_collide_y || cant_collide_z
     }
 }
 impl fmt::Display for Particle {
@@ -157,7 +158,7 @@ fn main() {
             for j in (i + 1)..particles.len() {
                 let pi = &particles[i];
                 let pj = &particles[j];
-                if pi.can_collide(pj) {
+                if !pi.cant_collide(pj) {
                     some_can_collide = true;
                     break 'outer;
                 }
