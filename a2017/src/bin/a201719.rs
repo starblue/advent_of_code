@@ -110,12 +110,12 @@ fn main() {
         let np = pos + dir;
         let lnp = pos + left;
         let rnp = pos + right;
-        if bounds.contains(np) && !map[np].is_empty() {
+        if bounds.contains(&np) && !map[np].is_empty() {
             pos = np;
-        } else if bounds.contains(lnp) && !map[lnp].is_empty() {
+        } else if bounds.contains(&lnp) && !map[lnp].is_empty() {
             pos = lnp;
             dir = left;
-        } else if bounds.contains(rnp) && !map[rnp].is_empty() {
+        } else if bounds.contains(&rnp) && !map[rnp].is_empty() {
             pos = rnp;
             dir = right;
         } else {

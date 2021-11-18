@@ -8,6 +8,6 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 num = "0.4.0"
 num-integer = "0.1.44"
 rand = "0.8.4"
-lowdim = "0.2.4"
+lowdim = "0.3.0"
 nom = "7.0.0"
 util = { path = "../util" }

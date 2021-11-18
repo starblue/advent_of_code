@@ -43,7 +43,7 @@ fn main() {
             .zip(n.hash(input))
             .filter_map(|((c, v), b)| {
                 let pos = n.pos + v;
-                if bbox.contains(pos) && b {
+                if bbox.contains(&pos) && b {
                     let path = n.path.clone() + c;
                     Some((Node { pos, path }, 1))
                 } else {
