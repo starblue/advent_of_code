@@ -11,3 +11,4 @@ rand = "0.8.4"
 lowdim = "0.3.1"
 nom = "7.0.0"
 util = { path = "../util" }
+primal = "0.3.0"
