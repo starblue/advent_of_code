@@ -116,10 +116,6 @@ fn input(i: &str) -> IResult<&str, Vec<Particle>> {
     many1(particle)(i)
 }
 
-fn norm2(v: Vec3d) -> i64 {
-    v.x() * v.x() + v.y() * v.y() + v.z() * v.z()
-}
-
 fn main() {
     let mut input_data = String::new();
     io::stdin()
@@ -147,7 +143,7 @@ fn main() {
     let result_a = input
         .iter()
         .enumerate()
-        .min_by_key(|(_id, particle)| norm2(particle.a))
+        .min_by_key(|(_id, particle)| particle.a.norm_l2_squared())
         .unwrap()
         .0;
 

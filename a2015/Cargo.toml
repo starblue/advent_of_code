@@ -6,7 +6,7 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 
 [dependencies]
 json = "0.12.4"
-lowdim = "0.3.1"
+lowdim = "0.3.3"
 md5 = "0.7.0"
 nom = "7.0.0"
 jmath-factor = { path = "../../math/jmath-factor" }
