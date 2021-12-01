@@ -1,0 +1,10 @@
+[package]
+edition = "2021"
+name = "a2021"
+version = "0.1.0"
+authors = ["Juergen Stuber <juergen@jstuber.net>"]
+
+[dependencies]
+nom = "7.0.0"
+lowdim = "0.3.4-alpha.0"
+util = { path = "../util" }
