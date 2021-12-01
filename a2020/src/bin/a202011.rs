@@ -72,7 +72,7 @@ fn main() {
         dirty = false;
 
         let mut new_map = old_map.clone();
-        for p in m.bounds().iter() {
+        for p in m.bbox().iter() {
             if let Square::Seat(occupied) = old_map[p] {
                 let c = p
                     .neighbors_l_infty()
@@ -103,7 +103,7 @@ fn main() {
         dirty = false;
 
         let mut new_map = old_map.clone();
-        for p in m.bounds().iter() {
+        for p in m.bbox().iter() {
             if let Square::Seat(occupied) = old_map[p] {
                 let mut count = 0;
                 for v in &Vec2d::unit_vecs_l_infty() {

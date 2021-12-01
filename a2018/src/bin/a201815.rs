@@ -102,7 +102,7 @@ struct State {
 impl State {
     fn from_map(map: Array2d<i64, Square>, config: Config) -> State {
         let mut units = HashMap::new();
-        for position in map.bounds().iter() {
+        for position in map.bbox().iter() {
             let square = map[position];
             if let Square::Unit(unit_type) = square {
                 let unit = Unit {
@@ -321,14 +321,14 @@ impl State {
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for y in self.map.bounds().y_range() {
-            for x in self.map.bounds().x_range() {
+        for y in self.map.bbox().y_range() {
+            for x in self.map.bbox().x_range() {
                 let p = p2d(x, y);
                 write!(f, "{}", self.map[p])?;
             }
             write!(f, "   ")?;
             let mut sep = "";
-            for x in self.map.bounds().x_range() {
+            for x in self.map.bbox().x_range() {
                 if let Some(u) = self.units.get(&p2d(x, y)) {
                     let u = u.borrow();
                     write!(f, "{}{}({})", sep, u.unit_type.to_char(), u.hit_points)?;

@@ -187,8 +187,8 @@ impl State {
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for y in self.map.bounds().y_range() {
-            for x in self.map.bounds().x_range() {
+        for y in self.map.bbox().y_range() {
+            for x in self.map.bbox().x_range() {
                 let p = p2d(x, y);
                 write!(f, "{}", self.map[p])?;
             }
@@ -273,8 +273,8 @@ fn main() {
 
         // collect cart positions in specified row order
         let mut cart_positions = Vec::new();
-        for y in state.map.bounds().y_range() {
-            for x in state.map.bounds().x_range() {
+        for y in state.map.bbox().y_range() {
+            for x in state.map.bbox().x_range() {
                 let p = p2d(x, y);
                 let square = state.map[p];
                 if let Some(_cart) = square.cart {

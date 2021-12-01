@@ -98,7 +98,7 @@ fn main() {
         }
     }
 
-    let area = fabric.bounds().iter().filter(|&p| fabric[p] > 1).count();
+    let area = fabric.bbox().iter().filter(|&p| fabric[p] > 1).count();
     let result_a = area;
     println!("a: {}", result_a);
 

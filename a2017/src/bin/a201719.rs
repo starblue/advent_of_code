@@ -82,14 +82,14 @@ fn main() {
     let input = result.unwrap().1;
 
     let map: Array2d<i64, Square> = Array2d::from_vec(input);
-    // for y in map.bounds().y_range() {
-    //     for x in map.bounds().x_range() {
+    // for y in map.bbox().y_range() {
+    //     for x in map.bbox().x_range() {
     //         print!("{}", map[p2d(x, y)]);
     //     }
     //     println!();
     // }
 
-    let bounds = map.bounds();
+    let bounds = map.bbox();
     // Find the starting position in the first row.
     let mut pos = bounds
         .x_range()

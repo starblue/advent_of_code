@@ -129,7 +129,7 @@ fn main() {
 
     let map = Array2d::from_vec(input);
     let pois = map
-        .bounds()
+        .bbox()
         .iter()
         .flat_map(|p| {
             if let Square::Poi(d) = map[p] {
