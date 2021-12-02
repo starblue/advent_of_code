@@ -42,10 +42,7 @@ fn main() {
 
     let result_a = input
         .windows(2)
-        .filter(|w| match w {
-            &[a, b] if a < b => true,
-            _ => false,
-        })
+        .filter(|w| matches!(w, &[a, b] if a < b))
         .count();
 
     let sums = input
@@ -57,10 +54,7 @@ fn main() {
         .collect::<Vec<_>>();
     let result_b = sums
         .windows(2)
-        .filter(|w| match w {
-            &[a, b] if a < b => true,
-            _ => false,
-        })
+        .filter(|w| matches!(w, &[a, b] if a < b))
         .count();
 
     println!("a: {}", result_a);
