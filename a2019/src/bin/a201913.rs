@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::io;
@@ -284,9 +286,6 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
@@ -349,12 +348,10 @@ fn main() {
 
         // control paddle
         state_b.set_default_input(Some({
-            if ball_x < paddle_x {
-                -1
-            } else if ball_x > paddle_x {
-                1
-            } else {
-                0
+            match ball_x.cmp(&paddle_x) {
+                Ordering::Less => -1,
+                Ordering::Greater => 1,
+                Ordering::Equal => 0,
             }
         }));
 
@@ -365,6 +362,7 @@ fn main() {
 
     let result_a = board_a.tile_count(BLOCK);
     let result_b = score;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

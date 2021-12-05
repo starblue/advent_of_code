@@ -47,10 +47,10 @@ fn main() {
             }
         }
     }
-    for j in 0..ys {
-        for i in 0..xs {
-            if let Some(d) = image[j][i] {
-                if d == 0 {
+    for row in &image {
+        for opt in row {
+            if let Some(d) = opt {
+                if *d == 0 {
                     print!(".");
                 } else {
                     print!("#");
@@ -64,6 +64,7 @@ fn main() {
 
     let result_a = min_count0_12.unwrap();
     let result_b = "KYHFE";
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

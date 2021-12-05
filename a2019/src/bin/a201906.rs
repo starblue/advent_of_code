@@ -8,6 +8,7 @@ use nom::character::complete::line_ending;
 use nom::combinator::map;
 use nom::combinator::recognize;
 use nom::multi::many1;
+use nom::multi::separated_list1;
 use nom::IResult;
 
 fn object(i: &str) -> IResult<&str, String> {
@@ -18,12 +19,11 @@ fn orbit(i: &str) -> IResult<&str, (String, String)> {
     let (i, obj0) = object(i)?;
     let (i, _) = char(')')(i)?;
     let (i, obj1) = object(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, (obj0, obj1)))
 }
 
 fn input(i: &str) -> IResult<&str, Vec<(String, String)>> {
-    many1(orbit)(i)
+    separated_list1(line_ending, orbit)(i)
 }
 
 fn orbit_count(m: &HashMap<String, String>, a: &str) -> i64 {
@@ -52,9 +52,6 @@ fn main() {
     io::stdin()
         .read_to_string(&mut input_data)
         .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
 
     // parse input
     let result = input(&input_data);
@@ -85,6 +82,7 @@ fn main() {
 
     let result_a = count;
     let result_b = you_len + san_len;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

@@ -76,9 +76,6 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
@@ -87,6 +84,7 @@ fn main() {
 
     let result_a = run(state.clone(), 12, 2);
     let result_b = find_inputs(&state, 19690720);
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

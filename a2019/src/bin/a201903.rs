@@ -75,9 +75,6 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
@@ -104,6 +101,7 @@ fn main() {
 
     let result_a = min_dist_a;
     let result_b = min_dist_b;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

@@ -13,7 +13,6 @@ use nom::combinator::map;
 use nom::combinator::map_res;
 use nom::combinator::opt;
 use nom::combinator::recognize;
-use nom::multi::many1;
 use nom::multi::separated_list1;
 use nom::sequence::tuple;
 use nom::IResult;
@@ -83,12 +82,11 @@ fn reaction(i: &str) -> IResult<&str, Reaction> {
     let (i, ins) = separated_list1(tag(", "), quantity)(i)?;
     let (i, _) = tag(" => ")(i)?;
     let (i, out) = quantity(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, Reaction { ins, out }))
 }
 
 fn input(i: &str) -> IResult<&str, Vec<Reaction>> {
-    many1(reaction)(i)
+    separated_list1(line_ending, reaction)(i)
 }
 
 fn required_ore(map: &HashMap<&str, &Reaction>, required_fuel: i64) -> i64 {
@@ -133,15 +131,14 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
 
     let reactions = result.unwrap().1;
-    //println!("{:?}", reactions);
+    // for r in &reactions {
+    //     println!("{}", r);
+    // }
 
     let map = reactions
         .iter()
@@ -161,6 +158,7 @@ fn main() {
 
     let result_a = req1;
     let result_b = fuel_est;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

@@ -96,13 +96,10 @@ impl State {
         }
     }
     fn load(&mut self, a: usize) -> i64 {
-        let v = self.mem[a];
-        //println!("{}: {} load {}", self.id, a, v);
-        v
+        self.mem[a]
     }
     fn store(&mut self, a: usize, v: i64) {
         self.mem[a] = v;
-        //println!("{}: {} store {}", self.id, a, v);
     }
     fn push_input(&mut self, input: i64) {
         self.input.push_back(input)
@@ -126,7 +123,6 @@ impl State {
     }
     fn step(&mut self) {
         if !self.halted {
-            //println!("{} step", self.id);
             let mut ds = self.start_decode();
             let instruction = ds.instruction();
             match instruction {
@@ -220,9 +216,6 @@ fn main() {
     io::stdin()
         .read_to_string(&mut input_data)
         .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
 
     // parse input
     let result = input(&input_data);
@@ -329,9 +322,9 @@ fn main() {
             }
         }
     }
-
     let result_a = max_out_a;
     let result_b = max_out_b;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

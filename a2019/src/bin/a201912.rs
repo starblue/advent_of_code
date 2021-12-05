@@ -12,7 +12,7 @@ use nom::character::complete::line_ending;
 use nom::combinator::map_res;
 use nom::combinator::opt;
 use nom::combinator::recognize;
-use nom::multi::many1;
+use nom::multi::separated_list1;
 use nom::sequence::tuple;
 use nom::IResult;
 
@@ -39,12 +39,11 @@ fn line(i: &str) -> IResult<&str, Point3d> {
     let (i, _) = tag(", z=")(i)?;
     let (i, z) = int(i)?;
     let (i, _) = tag(">")(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, p3d(x, y, z)))
 }
 
 fn input(i: &str) -> IResult<&str, Vec<Point3d>> {
-    many1(line)(i)
+    separated_list1(line_ending, line)(i)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -152,9 +151,6 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
     let result = input(&input_data);
     //println!("{:?}", result);
@@ -181,6 +177,7 @@ fn main() {
 
     let result_a = state_a.energy();
     let result_b = lcm(c1x, lcm(c1y, c1z));
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }

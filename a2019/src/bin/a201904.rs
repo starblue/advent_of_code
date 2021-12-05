@@ -60,6 +60,7 @@ fn main() {
 
     let result_a = count_a;
     let result_b = count_b;
+
     println!("a: {}", result_a);
     println!("b: {}", result_b);
 }
