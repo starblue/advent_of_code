@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::io;
 use std::io::Read;
 use std::str::FromStr;
@@ -10,12 +9,14 @@ use nom::character::complete::line_ending;
 use nom::combinator::map_res;
 use nom::combinator::opt;
 use nom::combinator::recognize;
-use nom::multi::many1;
+use nom::multi::separated_list1;
 use nom::sequence::tuple;
 use nom::IResult;
 
 use lowdim::p4d;
 use lowdim::Point4d;
+
+use util::DisjointSets;
 
 #[derive(Clone, Debug)]
 enum Error {}
@@ -35,30 +36,11 @@ fn point(i: &str) -> IResult<&str, Point4d> {
     let (i, z) = int64(i)?;
     let (i, _) = tag(",")(i)?;
     let (i, u) = int64(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, p4d(x, y, z, u)))
 }
 
-fn points(i: &str) -> IResult<&str, Vec<Point4d>> {
-    many1(point)(i)
-}
-
-fn find(reprs: &mut Vec<usize>, i: usize) -> usize {
-    let mut i = i;
-    while reprs[i] != i {
-        let prev = i;
-        i = reprs[i];
-        reprs[prev] = reprs[i];
-    }
-    i
-}
-
-fn union(reprs: &mut Vec<usize>, i: usize, j: usize) {
-    let i_repr = find(reprs, i);
-    let j_repr = find(reprs, j);
-    if i_repr != j_repr {
-        reprs[j_repr] = i_repr;
-    }
+fn input(i: &str) -> IResult<&str, Vec<Point4d>> {
+    separated_list1(line_ending, point)(i)
 }
 
 fn main() {
@@ -67,11 +49,8 @@ fn main() {
         .read_to_string(&mut input_data)
         .expect("I/O error");
 
-    // make nom happy
-    input_data.push('\n');
-
     // parse input
-    let result = points(&input_data);
+    let result = input(&input_data);
     //println!("{:?}", result);
 
     let points = result.unwrap().1;
@@ -79,22 +58,21 @@ fn main() {
     //     println!("{:?}", p);
     // }
 
+    let mut constellations = DisjointSets::new();
+    for &p in &points {
+        constellations.add(p);
+    }
     let n = points.len();
-    let mut reprs = (0..n).collect::<Vec<_>>();
     for i in 0..(n - 1) {
+        let pi = points[i];
         for j in (i + 1)..n {
-            if points[i].distance_l1(points[j]) <= 3 {
-                union(&mut reprs, i, j);
+            let pj = points[j];
+            if pi.distance_l1(pj) <= 3 {
+                constellations.union(&pi, &pj);
             }
         }
     }
+    let result_a = constellations.set_reprs().len();
 
-    let mut constellations = HashSet::new();
-    for i in 0..n {
-        let i_repr = find(&mut reprs, i);
-        constellations.insert(i_repr);
-    }
-
-    println!("1: {}", constellations.len());
-    println!("2: {}", 0);
+    println!("a: {}", result_a);
 }
