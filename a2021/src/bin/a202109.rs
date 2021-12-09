@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt;
 use std::io;
 use std::io::Read;
@@ -112,21 +111,14 @@ fn main() {
     let map = result.unwrap().1;
     // println!("{}", map);
 
-    let result_a = map
-        .bbox()
-        .iter()
-        .filter_map(|p| map.risk_level(p))
-        .sum::<u32>();
+    let bbox = map.bbox();
 
-    // Internal disjoint set representatives for points in a basin.
-    let mut reprs = HashMap::new();
+    let result_a = bbox.iter().filter_map(|p| map.risk_level(p)).sum::<u32>();
+
     // Basins are represented as disjoint sets.
     let mut basins = DisjointSets::new();
-
-    let bbox = map.bbox();
     for p in bbox.iter() {
-        let id = basins.add();
-        reprs.insert(p, id);
+        basins.add(p);
     }
     for p in bbox.iter() {
         let h = map.height(p);
@@ -134,9 +126,7 @@ fn main() {
             if bbox.contains(&np) {
                 let nh = map.height(np);
                 if h < 9 && nh < 9 {
-                    let id = reprs[&p];
-                    let nid = reprs[&np];
-                    basins.union(id, nid);
+                    basins.union(&p, &np);
                 }
             }
         }
@@ -144,7 +134,7 @@ fn main() {
     let mut basin_sizes = basins
         .set_reprs()
         .iter()
-        .map(|&id| basins.set_size(id))
+        .map(|&p| basins.set_size(p))
         .collect::<Vec<_>>();
     basin_sizes.sort();
     let size0 = basin_sizes.pop().unwrap();

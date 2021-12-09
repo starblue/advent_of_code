@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use lowdim::p2d;
 use lowdim::v2d;
 
@@ -19,8 +17,6 @@ fn main() {
     }
     let result_a = count;
 
-    // Internal disjoint set representatives for points in a region.
-    let mut reprs = HashMap::new();
     // Regions are represented as disjoint sets.
     let mut regions = DisjointSets::new();
 
@@ -33,16 +29,15 @@ fn main() {
             let bit_index = 7 - (j % 8);
             if (b & (1 << bit_index)) != 0 {
                 let p = p2d(i, j);
-                let id = regions.add();
-                reprs.insert(p, id);
+                regions.add(p);
 
                 let p_left = p - v2d(1, 0);
-                if let Some(id_left) = reprs.get(&p_left) {
-                    regions.union(id, *id_left);
+                if regions.contains(&p_left) {
+                    regions.union(&p, &p_left);
                 }
                 let p_up = p - v2d(0, 1);
-                if let Some(id_up) = reprs.get(&p_up) {
-                    regions.union(id, *id_up);
+                if regions.contains(&p_up) {
+                    regions.union(&p, &p_up);
                 }
             }
         }

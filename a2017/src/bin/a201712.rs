@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt;
 use std::io;
 use std::io::Read;
@@ -68,20 +67,15 @@ fn main() {
 
     // Use disjoint sets to represent groups.
     let mut groups = DisjointSets::new();
-    // Map from program ids to internal ids in disjoint sets structure.
-    let ids = input
-        .iter()
-        .map(|p| {
-            let id = groups.add();
-            (p.id, id)
-        })
-        .collect::<HashMap<_, _>>();
+    for p in &input {
+        groups.add(p.id);
+    }
     for p in &input {
         for &n_id in &p.neighbors {
-            groups.union(ids[&p.id], ids[&n_id]);
+            groups.union(&p.id, &n_id);
         }
     }
-    let result_a = groups.set_size(ids[&0]);
+    let result_a = groups.set_size(&0);
 
     let result_b = groups.set_reprs().len();
 
