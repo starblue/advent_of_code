@@ -37,7 +37,7 @@ struct HeightMap {
 impl HeightMap {
     fn is_low_point(&self, p: Point2d) -> bool {
         if let Some(loc) = self.map.get(p) {
-            p.neighbors_l1().iter().all(|&np| {
+            p.neighbors_l1().all(|np| {
                 if let Some(nloc) = self.map.get(np) {
                     nloc.height > loc.height
                 } else {
@@ -122,7 +122,7 @@ fn main() {
     }
     for p in bbox.iter() {
         let h = map.height(p);
-        for &np in p.neighbors_l1().iter() {
+        for np in p.neighbors_l1() {
             if bbox.contains(&np) {
                 let nh = map.height(np);
                 if h < 9 && nh < 9 {

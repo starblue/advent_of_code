@@ -77,11 +77,7 @@ fn main() {
         }
 
         // compute sum of neighbors
-        value = p
-            .neighbors_l_infty()
-            .iter()
-            .flat_map(|np| grid.get(np))
-            .sum();
+        value = p.neighbors_l_infty().flat_map(|np| grid.get(&np)).sum();
         grid.insert(p, value);
 
         if value > input {

@@ -183,8 +183,7 @@ fn main() {
         let dest_sn = map[&n.hole_pos];
         n.hole_pos
             .neighbors_l1()
-            .iter()
-            .filter_map(|&new_hole_pos| {
+            .filter_map(|new_hole_pos| {
                 if let Some(src_sn) = map.get(&new_hole_pos) {
                     // Can we move the data from the source storage node
                     // to the destination storage node?

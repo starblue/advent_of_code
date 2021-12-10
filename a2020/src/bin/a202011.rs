@@ -106,7 +106,7 @@ fn main() {
         for p in m.bbox().iter() {
             if let Square::Seat(occupied) = old_map[p] {
                 let mut count = 0;
-                for v in &Vec2d::unit_vecs_l_infty() {
+                for v in Vec2d::unit_vecs_l_infty() {
                     let mut np = p + v;
                     while old_map.get(np) == Some(&Square::Floor) {
                         np += v;

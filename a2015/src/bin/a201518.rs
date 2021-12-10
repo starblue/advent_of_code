@@ -83,8 +83,7 @@ fn main() {
         let new_map = Array2d::with(map.bbox(), |p| {
             let count = p
                 .neighbors_l_infty()
-                .iter()
-                .filter(|&&p| map.get(p) == Some(&Cell::Active))
+                .filter(|&p| map.get(p) == Some(&Cell::Active))
                 .count();
             if (count == 2 && map[p] == Cell::Active) || count == 3 {
                 Cell::Active
@@ -101,8 +100,7 @@ fn main() {
         let new_map = Array2d::with(map.bbox(), |p| {
             let count = p
                 .neighbors_l_infty()
-                .iter()
-                .filter(|&&p| map.get(p) == Some(&Cell::Active))
+                .filter(|&p| map.get(p) == Some(&Cell::Active))
                 .count();
             if (count == 2 && map[p] == Cell::Active) || count == 3 || is_corner(&map, p) {
                 Cell::Active

@@ -97,8 +97,7 @@ fn main() {
                 let active = active_positions.contains(&p);
                 let count = p
                     .neighbors_l_infty()
-                    .iter()
-                    .filter(|np| active_positions.contains(np))
+                    .filter(|np| active_positions.contains(&np))
                     .count();
                 if active {
                     count == 2 || count == 3
@@ -136,8 +135,7 @@ fn main() {
                 let active = active_positions.contains(&p);
                 let count = p
                     .neighbors_l_infty()
-                    .iter()
-                    .filter(|np| active_positions.contains(np))
+                    .filter(|np| active_positions.contains(&np))
                     .count();
                 if active {
                     count == 2 || count == 3

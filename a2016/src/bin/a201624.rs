@@ -153,8 +153,7 @@ fn main() {
     let successors = |n: &Node| {
         n.pos
             .neighbors_l1()
-            .iter()
-            .filter_map(|&new_pos| {
+            .filter_map(|new_pos| {
                 if let Some(sq) = map.get(new_pos) {
                     if sq.is_open() {
                         let new_pois = n
