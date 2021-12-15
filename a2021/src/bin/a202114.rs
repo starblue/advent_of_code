@@ -157,7 +157,7 @@ fn main() {
     // Run reactions
     for _ in 0..40 {
         let mut new_reactive_pair_counts = HashMap::new();
-        let mut new_inert_counts = HashMap::new();
+        let mut new_inert_counts = inert_counts.clone();
 
         for (&(e0, e1), count) in &reactive_pair_counts {
             let e = rules[&(e0, e1)];
