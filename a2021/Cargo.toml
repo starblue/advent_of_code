@@ -8,3 +8,4 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 nom = "7.0.0"
 lowdim = "0.5.2"
 util = { path = "../util" }
+pathfinding = "2.2.2"
