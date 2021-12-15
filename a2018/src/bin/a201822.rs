@@ -195,7 +195,7 @@ fn main() {
     println!("target: {:?}", target);
 
     let origin = p2d(0, 0);
-    let domain = BBox2d::from_points(origin, target);
+    let domain = BBox2d::from_corners(origin, target);
 
     let mut map = Map::new(target, depth);
 

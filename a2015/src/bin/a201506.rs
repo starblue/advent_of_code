@@ -79,7 +79,7 @@ fn bbox(i: &str) -> IResult<&str, BBox2d> {
     let (i, p0) = point(i)?;
     let (i, _) = tag(" through ")(i)?;
     let (i, p1) = point(i)?;
-    Ok((i, BBox2d::from_points(p0, p1)))
+    Ok((i, BBox2d::from_corners(p0, p1)))
 }
 
 fn instruction(i: &str) -> IResult<&str, Instruction> {
@@ -109,7 +109,7 @@ fn main() {
 
     let input = result.unwrap().1;
 
-    let bbox = BBox2d::from_points(p2d(0, 0), p2d(999, 999));
+    let bbox = BBox2d::from_corners(p2d(0, 0), p2d(999, 999));
     let mut lights = Array2d::new(bbox, false);
     for &instruction in &input {
         for p in instruction.bbox.iter() {
@@ -118,7 +118,7 @@ fn main() {
     }
     let result_a = lights.iter().filter(|&&b| b).count();
 
-    let bbox = BBox2d::from_points(p2d(0, 0), p2d(999, 999));
+    let bbox = BBox2d::from_corners(p2d(0, 0), p2d(999, 999));
     let mut lights = Array2d::new(bbox, 0);
     for &instruction in &input {
         for p in instruction.bbox.iter() {

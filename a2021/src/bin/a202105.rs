@@ -72,7 +72,7 @@ fn main() {
         let p0 = vent_line.p0;
         let p1 = vent_line.p1;
         if p0.x() == p1.x() || p0.y() == p1.y() {
-            let bbox = BBox2d::from_points(p0, p1);
+            let bbox = BBox2d::from_corners(p0, p1);
             for p in bbox.iter() {
                 let e = counts.entry(p).or_insert(0);
                 *e += 1;
