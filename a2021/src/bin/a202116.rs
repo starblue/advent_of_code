@@ -1,3 +1,5 @@
+use std::error;
+use std::fmt;
 use std::io;
 use std::io::Read;
 
@@ -9,7 +11,13 @@ use nom::multi::many1;
 use nom::IResult;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct TryFromPacketTypeError;
+struct TryFromPacketTypeError(u8);
+impl error::Error for TryFromPacketTypeError {}
+impl fmt::Display for TryFromPacketTypeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "{} is not a valid packet type", self.0)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
@@ -24,7 +32,7 @@ enum PacketType {
     EqualTo = 7,
 }
 impl PacketType {
-    fn value(&self, packets: &[Packet]) -> i64 {
+    fn apply(&self, packets: &[Packet]) -> i64 {
         match self {
             PacketType::Sum => packets.iter().map(|p| p.value()).sum::<i64>(),
             PacketType::Product => packets.iter().map(|p| p.value()).product::<i64>(),
@@ -69,7 +77,7 @@ impl TryFrom<u8> for PacketType {
             5 => Ok(PacketType::GreaterThan),
             6 => Ok(PacketType::LessThan),
             7 => Ok(PacketType::EqualTo),
-            _ => Err(TryFromPacketTypeError),
+            n => Err(TryFromPacketTypeError(n)),
         }
     }
 }
@@ -88,7 +96,7 @@ impl Contents {
     fn value(&self, packet_type: PacketType) -> i64 {
         match self {
             Contents::Literal { value } => *value,
-            Contents::Operator { packets, .. } => packet_type.value(packets),
+            Contents::Operator { packets, .. } => packet_type.apply(packets),
         }
     }
     fn subpackets(&self) -> &[Packet] {
