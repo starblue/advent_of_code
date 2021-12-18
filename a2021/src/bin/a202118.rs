@@ -58,10 +58,10 @@ impl Number {
                         let n0 = n0.magnitude();
                         let n1 = n1.magnitude();
                         if let Some(left) = left {
-                            left.add_rightmost_regular(n0);
+                            left.inc_rightmost_regular(n0);
                         }
                         if let Some(right) = right {
-                            right.add_leftmost_regular(n1);
+                            right.inc_leftmost_regular(n1);
                         }
                         *pair = InnerNumber::Regular(0);
                         true
@@ -75,16 +75,16 @@ impl Number {
             }
         }
     }
-    fn add_leftmost_regular(&mut self, delta: i64) {
+    fn inc_leftmost_regular(&mut self, delta: i64) {
         match &mut *self.0.borrow_mut() {
             InnerNumber::Regular(n) => *n += delta,
-            InnerNumber::Pair(n0, _n1) => n0.add_leftmost_regular(delta),
+            InnerNumber::Pair(n0, _n1) => n0.inc_leftmost_regular(delta),
         }
     }
-    fn add_rightmost_regular(&mut self, delta: i64) {
+    fn inc_rightmost_regular(&mut self, delta: i64) {
         match &mut *self.0.borrow_mut() {
             InnerNumber::Regular(n) => *n += delta,
-            InnerNumber::Pair(_n0, n1) => n1.add_rightmost_regular(delta),
+            InnerNumber::Pair(_n0, n1) => n1.inc_rightmost_regular(delta),
         }
     }
 
@@ -95,8 +95,8 @@ impl Number {
                     if *n >= 10 {
                         let n0 = *n / 2;
                         let n1 = *n - n0;
-                        let n0 = Number(Rc::new(RefCell::new(InnerNumber::Regular(n0))));
-                        let n1 = Number(Rc::new(RefCell::new(InnerNumber::Regular(n1))));
+                        let n0 = Number::regular(n0);
+                        let n1 = Number::regular(n1);
                         *number = InnerNumber::Pair(n0, n1);
                         true
                     } else {
