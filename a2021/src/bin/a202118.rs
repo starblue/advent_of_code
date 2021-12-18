@@ -1,9 +1,7 @@
-use core::cell::RefCell;
 use core::fmt;
 
 use std::io;
 use std::io::Read;
-use std::rc::Rc;
 
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -18,19 +16,13 @@ enum InnerNumber {
     Pair(Number, Number),
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct Number(Rc<RefCell<InnerNumber>>);
+struct Number(Box<InnerNumber>);
 impl Number {
     fn regular(n: i64) -> Number {
-        Number(Rc::new(RefCell::new(InnerNumber::Regular(n))))
+        Number(Box::new(InnerNumber::Regular(n)))
     }
     fn pair(self, other: Number) -> Number {
-        Number(Rc::new(RefCell::new(InnerNumber::Pair(self, other))))
-    }
-    fn deep_clone(&self) -> Number {
-        match &*self.0.borrow_mut() {
-            InnerNumber::Regular(n) => Number::regular(*n),
-            InnerNumber::Pair(n0, n1) => n0.deep_clone().pair(n1.deep_clone()),
-        }
+        Number(Box::new(InnerNumber::Pair(self, other)))
     }
 
     fn add(self, other: Number) -> Number {
@@ -50,13 +42,13 @@ impl Number {
         right: Option<&mut Number>,
         depth: usize,
     ) -> bool {
-        match &mut *self.0.borrow_mut() {
+        match &mut *self.0 {
             InnerNumber::Regular(_) => false,
             pair @ InnerNumber::Pair(_, _) => {
                 if let InnerNumber::Pair(n0, n1) = pair {
                     if depth >= 4 {
-                        let n0 = n0.magnitude();
-                        let n1 = n1.magnitude();
+                        let n0 = n0.value();
+                        let n1 = n1.value();
                         if let Some(left) = left {
                             left.inc_rightmost_regular(n0);
                         }
@@ -76,20 +68,20 @@ impl Number {
         }
     }
     fn inc_leftmost_regular(&mut self, delta: i64) {
-        match &mut *self.0.borrow_mut() {
+        match &mut *self.0 {
             InnerNumber::Regular(n) => *n += delta,
             InnerNumber::Pair(n0, _n1) => n0.inc_leftmost_regular(delta),
         }
     }
     fn inc_rightmost_regular(&mut self, delta: i64) {
-        match &mut *self.0.borrow_mut() {
+        match &mut *self.0 {
             InnerNumber::Regular(n) => *n += delta,
             InnerNumber::Pair(_n0, n1) => n1.inc_rightmost_regular(delta),
         }
     }
 
     fn try_split(&mut self) -> bool {
-        match &mut *self.0.borrow_mut() {
+        match &mut *self.0 {
             number @ InnerNumber::Regular(_) => {
                 if let InnerNumber::Regular(n) = &number {
                     if *n >= 10 {
@@ -111,15 +103,21 @@ impl Number {
     }
 
     fn magnitude(&self) -> i64 {
-        match &*self.0.borrow() {
+        match &*self.0 {
             InnerNumber::Regular(n) => *n,
             InnerNumber::Pair(n0, n1) => 3 * n0.magnitude() + 2 * n1.magnitude(),
+        }
+    }
+    fn value(&self) -> i64 {
+        match &*self.0 {
+            InnerNumber::Regular(n) => *n,
+            _ => panic!("expected regular number"),
         }
     }
 }
 impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        match &*self.0.borrow() {
+        match &*self.0 {
             InnerNumber::Regular(n) => write!(f, "{}", n),
             InnerNumber::Pair(n0, n1) => write!(f, "[{},{}]", n0, n1),
         }
@@ -163,9 +161,9 @@ fn main() {
     // }
 
     let mut iter = input.iter();
-    let mut sum = iter.next().unwrap().deep_clone();
+    let mut sum = iter.next().unwrap().clone();
     for n in iter {
-        sum = sum.add(n.deep_clone());
+        sum = sum.add(n.clone());
     }
     let result_a = sum.magnitude();
 
@@ -173,8 +171,8 @@ fn main() {
     for ni in &input {
         for nj in &input {
             if ni != nj {
-                let ni = ni.deep_clone();
-                let nj = nj.deep_clone();
+                let ni = ni.clone();
+                let nj = nj.clone();
                 let sum = ni.add(nj);
                 let magnitude = sum.magnitude();
                 max_magnitude = max_magnitude.max(magnitude);
