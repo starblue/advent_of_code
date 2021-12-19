@@ -112,7 +112,7 @@ fn main() {
 
     // Initialize with data from first scanner
     // The transformation maps from the report coordinate system to the global one,
-    // which is take to be the one from the first report.
+    // which is taken to be the one from the first report.
     let f = <AffineTransformation<i64, Matrix3d<i64>>>::identity();
     let placed_beacons = input[0]
         .beacons
@@ -151,7 +151,8 @@ fn main() {
                             let count = placed_beacons.intersection(&new_beacons).count();
                             if count >= 12 {
                                 // Place scanner for the report.
-                                new_placed_scanners.push((t.apply(p3d(0, 0, 0)), new_beacons));
+                                let new_scanner = t.apply(p3d(0, 0, 0));
+                                new_placed_scanners.push((new_scanner, new_beacons));
                                 new_placed_ids.insert(report.scanner_id);
                                 break 'search;
                             }
@@ -159,8 +160,6 @@ fn main() {
                     }
                 }
             }
-            // if report lead to placing the scanner move it to placed_scanners
-            // if not collect it in new_unplaced_reports
         }
         placed_scanners.append(&mut new_placed_scanners);
         unplaced_reports.retain(|r| !new_placed_ids.contains(&r.scanner_id));
