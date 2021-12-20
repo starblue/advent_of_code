@@ -12,7 +12,7 @@ use nom::combinator::recognize;
 use nom::multi::separated_list1;
 use nom::IResult;
 
-use util::Permutation;
+use permutations::Permutation;
 
 #[derive(Clone, Copy, Debug)]
 enum DanceMove {
@@ -55,15 +55,15 @@ impl State {
         }
     }
     fn spin(&mut self, x: usize) {
-        self.perm = Permutation::rotate_right(self.len, x) * &self.perm;
+        self.perm = Permutation::rotation_right(self.len, x) * &self.perm;
     }
     fn exchange(&mut self, x: usize, y: usize) {
-        self.perm = Permutation::transpose(self.len, x, y) * &self.perm;
+        self.perm = Permutation::transposition(self.len, x, y) * &self.perm;
     }
     fn partner(&mut self, x: char, y: char) {
         let i = usize::try_from(u32::from(x) - u32::from('a')).unwrap();
         let j = usize::try_from(u32::from(y) - u32::from('a')).unwrap();
-        self.name_perm = &self.name_perm * Permutation::transpose(self.len, i, j);
+        self.name_perm = &self.name_perm * Permutation::transposition(self.len, i, j);
     }
     /// Repeat the dance moves so far a given number of times.
     fn repeat(&mut self, n: u32) {

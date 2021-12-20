@@ -12,3 +12,4 @@ lowdim = "0.5.2"
 nom = "7.0.0"
 util = { path = "../util" }
 primal = "0.3.0"
+permutations = "0.1.0"
