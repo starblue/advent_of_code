@@ -95,32 +95,24 @@ struct State {
 }
 impl State {
     fn new(input: &Input) -> State {
-        let player1 = Player::new(input.start1);
-        let player2 = Player::new(input.start2);
         State {
             turn: Turn::Player1,
-            player1,
-            player2,
+            player1: Player::new(input.start1),
+            player2: Player::new(input.start2),
         }
     }
     fn roll(&self, roll: usize) -> State {
         match self.turn {
-            Turn::Player1 => {
-                let new_player1 = self.player1.roll(roll);
-                State {
-                    turn: Turn::Player2,
-                    player1: new_player1,
-                    player2: self.player2.clone(),
-                }
-            }
-            Turn::Player2 => {
-                let new_player2 = self.player2.roll(roll);
-                State {
-                    turn: Turn::Player1,
-                    player1: self.player1.clone(),
-                    player2: new_player2,
-                }
-            }
+            Turn::Player1 => State {
+                turn: Turn::Player2,
+                player1: self.player1.roll(roll),
+                player2: self.player2.clone(),
+            },
+            Turn::Player2 => State {
+                turn: Turn::Player1,
+                player1: self.player1.clone(),
+                player2: self.player2.roll(roll),
+            },
         }
     }
     fn player1_has_won(&self) -> bool {
