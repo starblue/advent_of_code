@@ -6,6 +6,6 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 
 [dependencies]
 pathfinding = "2.2.2"
-lowdim = "0.5.2"
+lowdim = "0.5.3"
 md5 = "0.7.0"
 nom = "7.0.0"
