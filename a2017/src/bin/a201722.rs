@@ -72,7 +72,7 @@ fn main() {
     let input = result.unwrap().1;
 
     let row_count = input.len();
-    let mut bounds = BBox2d::from_point(p2d(0, 0));
+    let mut bounds = BBox2d::from(p2d(0, 0));
     let mut initial_map = HashMap::new();
     for (i, row) in input.iter().enumerate() {
         for (j, &node) in row.iter().enumerate() {

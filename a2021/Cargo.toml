@@ -6,6 +6,6 @@ authors = ["Juergen Stuber <juergen@jstuber.net>"]
 
 [dependencies]
 nom = "7.0.0"
-lowdim = "0.5.3"
+lowdim = "0.5.4"
 util = { path = "../util" }
 pathfinding = "2.2.2"

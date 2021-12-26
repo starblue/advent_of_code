@@ -9,5 +9,5 @@ nom = "7.0.0"
 num = "0.4.0"
 num-integer = "0.1.44"
 rand = "0.8.4"
-lowdim = "0.5.3"
+lowdim = "0.5.4"
 modulo = { path = "../../math/jmath-modulo", version = "0.1.0", package="jmath-modulo" }

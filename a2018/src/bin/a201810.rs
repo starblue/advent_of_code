@@ -91,7 +91,7 @@ fn main() {
     let mut t = 0;
     let mut last_area = usize::MAX;
     loop {
-        let mut bbox = BBox::from_point(pos_at_t(&records[0], t));
+        let mut bbox = BBox::from(pos_at_t(&records[0], t));
         for r in records.iter().skip(1) {
             let p = pos_at_t(r, t);
             bbox = bbox.extend_to(p);
