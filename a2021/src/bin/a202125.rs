@@ -79,15 +79,7 @@ impl Region {
         self.get(p) == Some(&Square::Cucumber(herd))
     }
     fn move_dest(&self, p: Point2d, herd: Herd) -> Point2d {
-        let d = herd.dir();
-        let mut new_p = p + d;
-        if new_p.x() > self.bbox().x_max() {
-            new_p -= v2d(self.bbox().x_len(), 0);
-        }
-        if new_p.y() > self.bbox().y_max() {
-            new_p -= v2d(0, self.bbox().y_len());
-        }
-        new_p
+        (p + herd.dir()) % self.bbox()
     }
     fn step_herd(&mut self, herd: Herd) -> bool {
         let mut moves = Vec::new();
