@@ -10,7 +10,10 @@ use nom::character::complete::line_ending;
 use nom::multi::separated_list0;
 use nom::IResult;
 
+use permutations::Permutations;
+
 use lowdim::p3d;
+use lowdim::v3d;
 use lowdim::AffineTransformation;
 use lowdim::Matrix;
 use lowdim::Matrix3d;
@@ -81,26 +84,14 @@ fn main() {
     // }
 
     let mut rotations = Vec::new();
-    for xj in 0..=2 {
-        for yj in 0..=2 {
-            if yj != xj {
-                for zj in 0..=2 {
-                    if zj != xj && zj != yj {
-                        for xs in [1, -1] {
-                            for ys in [1, -1] {
-                                for zs in [1, -1] {
-                                    let m = Matrix3d::with(|i, j| match i {
-                                        0 if j == xj => xs,
-                                        1 if j == yj => ys,
-                                        2 if j == zj => zs,
-                                        _ => 0,
-                                    });
-                                    if m.det() == 1 {
-                                        rotations.push(m);
-                                    }
-                                }
-                            }
-                        }
+    for p in Permutations::new(3).iter() {
+        for xs in [1, -1] {
+            for ys in [1, -1] {
+                for zs in [1, -1] {
+                    let v = v3d(xs, ys, zs);
+                    let m = Matrix3d::with(|i, j| if j == p.apply(i) { v[i] } else { 0 });
+                    if m.det() == 1 {
+                        rotations.push(m);
                     }
                 }
             }
