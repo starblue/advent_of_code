@@ -54,8 +54,8 @@ fn groups(
     }
 }
 
-fn entanglement(group: &[i64]) -> i64 {
-    group.iter().product::<i64>()
+fn entanglement(group: &[i64]) -> i128 {
+    group.iter().map(|&item| i128::from(item)).product::<i128>()
 }
 
 fn group_cmp(g0: &Vec<i64>, g1: &Vec<i64>) -> cmp::Ordering {
