@@ -39,14 +39,14 @@ fn main() {
     //println!("{:?}", result);
 
     let input = result.unwrap().1;
-    for row in &input {
-        let mut sep = "";
-        for n in row {
-            print!("{}{}", sep, n);
-            sep = "\t";
-        }
-        println!();
-    }
+    // for row in &input {
+    //     let mut sep = "";
+    //     for n in row {
+    //         print!("{}{}", sep, n);
+    //         sep = "\t";
+    //     }
+    //     println!();
+    // }
 
     let mut sum = 0;
     for row in &input {

@@ -297,8 +297,5 @@ fn main() {
     }
     let result_a = n;
 
-    let result_b = 0;
-
     println!("a: {}", result_a);
-    println!("b: {}", result_b);
 }

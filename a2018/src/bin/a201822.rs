@@ -191,8 +191,8 @@ fn main() {
     //println!("{:?}", result);
 
     let (depth, target) = result.unwrap().1;
-    println!("depth: {}", depth);
-    println!("target: {:?}", target);
+    // println!("depth: {}", depth);
+    // println!("target: {:?}", target);
 
     let origin = p2d(0, 0);
     let domain = BBox2d::from_corners(origin, target);

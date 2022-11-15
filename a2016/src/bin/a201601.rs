@@ -118,12 +118,12 @@ fn main() {
     //println!("{:?}", result);
 
     let input = result.unwrap().1;
-    let mut sep = "";
-    for i in &input {
-        print!("{}{}", sep, i);
-        sep = ", ";
-    }
-    println!();
+    // let mut sep = "";
+    // for i in &input {
+    //     print!("{}{}", sep, i);
+    //     sep = ", ";
+    // }
+    // println!();
 
     let mut state = State::start();
     for i in &input {

@@ -76,14 +76,12 @@ struct Unit {
 struct Config {
     elf_attack_power: i64,
     elves_may_die: bool,
-    log_states: bool,
 }
 impl Default for Config {
     fn default() -> Self {
         Config {
             elf_attack_power: 3,
             elves_may_die: true,
-            log_states: false,
         }
     }
 }
@@ -193,12 +191,7 @@ impl State {
     pub fn run(&mut self) -> Result<i64, Err> {
         let mut round = 0;
         let full_rounds;
-        if self.config.log_states {
-            println!("Initial state");
-            println!("{}", self);
-        }
         'outer: loop {
-            let mut round_started = false;
             round += 1;
 
             // play the units in turn order
@@ -206,16 +199,9 @@ impl State {
                 if u.borrow().hit_points > 0 {
                     let target_positions = self.target_positions(&u);
                     if target_positions.is_empty() {
-                        if round_started {
-                            if self.config.log_states {
-                                println!("Final state in round {}", round);
-                                println!("{}", self);
-                            }
-                        }
                         full_rounds = round - 1;
                         break 'outer;
                     }
-                    round_started = true;
 
                     let pu = u.borrow().position;
 
@@ -306,15 +292,7 @@ impl State {
                     }
                 }
             }
-
-            if self.config.log_states {
-                println!("After round {}", round);
-                println!("{}", self);
-            }
         }
-        println!("full rounds: {}", full_rounds);
-        println!("hit points: {}", self.hit_points());
-
         Ok(full_rounds * self.hit_points())
     }
 }
@@ -382,7 +360,6 @@ fn main() {
         let config = Config {
             elf_attack_power: eap,
             elves_may_die: false,
-            log_states: false,
         };
         let mut state = State::from_map(map.clone(), config);
         if let Ok(result) = state.run() {

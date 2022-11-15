@@ -268,12 +268,8 @@ fn main() {
         for x in 0..50 {
             if is_pulled(&mem, p2d(x, y)) {
                 count += 1;
-                print!("#");
-            } else {
-                print!(".");
             }
         }
-        println!();
     }
 
     let mut p = p2d(5000, 250);
