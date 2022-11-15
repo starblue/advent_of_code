@@ -8,6 +8,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::line_ending;
 use nom::combinator::value;
 use nom::multi::many1;
+use nom::multi::separated_list1;
 use nom::IResult;
 
 use lowdim::p2d;
@@ -98,14 +99,11 @@ fn dir(i: &str) -> IResult<&str, HexDir> {
 
 fn tile(i: &str) -> IResult<&str, Tile> {
     let (i, dirs) = many1(dir)(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, Tile(dirs)))
 }
 
 fn input(i: &str) -> IResult<&str, Vec<Tile>> {
-    let (i, tiles) = many1(tile)(i)?;
-    let (i, _) = line_ending(i)?;
-    Ok((i, tiles))
+    separated_list1(line_ending, tile)(i)
 }
 
 fn hex_neighbors(p: Point2d) -> Vec<Point2d> {

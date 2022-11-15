@@ -6,27 +6,25 @@ use nom::character::complete::alpha1;
 use nom::character::complete::line_ending;
 use nom::combinator::map;
 use nom::combinator::recognize;
-use nom::multi::many1;
+use nom::multi::separated_list1;
 use nom::IResult;
 
 fn answers(i: &str) -> IResult<&str, String> {
     map(recognize(alpha1), String::from)(i)
 }
 
-fn person(i: &str) -> IResult<&str, String> {
-    let (i, answers) = answers(i)?;
-    let (i, _) = line_ending(i)?;
-    Ok((i, answers))
+fn group(i: &str) -> IResult<&str, Vec<String>> {
+    separated_list1(line_ending, answers)(i)
 }
 
-fn group(i: &str) -> IResult<&str, Vec<String>> {
-    let (i, persons) = many1(person)(i)?;
+fn group_sep(i: &str) -> IResult<&str, ()> {
     let (i, _) = line_ending(i)?;
-    Ok((i, persons))
+    let (i, _) = line_ending(i)?;
+    Ok((i, ()))
 }
 
 fn input(i: &str) -> IResult<&str, Vec<Vec<String>>> {
-    many1(group)(i)
+    separated_list1(group_sep, group)(i)
 }
 
 fn answer_set(s: &str) -> HashSet<char> {

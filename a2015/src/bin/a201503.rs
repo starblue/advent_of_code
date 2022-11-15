@@ -4,7 +4,6 @@ use std::io::Read;
 
 use nom::branch::alt;
 use nom::character::complete::char;
-use nom::character::complete::line_ending;
 use nom::combinator::value;
 use nom::multi::many1;
 use nom::IResult;
@@ -24,7 +23,6 @@ fn action(i: &str) -> IResult<&str, Vec2d> {
 
 fn input(i: &str) -> IResult<&str, Vec<Vec2d>> {
     let (i, actions) = many1(action)(i)?;
-    let (i, _) = line_ending(i)?;
     Ok((i, actions))
 }
 

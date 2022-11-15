@@ -14,8 +14,8 @@ use nom::combinator::map_res;
 use nom::combinator::recognize;
 use nom::combinator::value;
 use nom::multi::many0;
-use nom::multi::many1;
 use nom::multi::many_m_n;
+use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
 
@@ -188,18 +188,27 @@ fn pair(i: &str) -> IResult<&str, (Field, String)> {
     let (i, field) = field(i)?;
     let (i, _) = tag(":")(i)?;
     let (i, value) = val(i)?;
-    let (i, _) = alt((tag(" "), line_ending))(i)?;
     Ok((i, (field, value)))
 }
 
+fn pair_sep(i: &str) -> IResult<&str, ()> {
+    let (i, _) = alt((tag(" "), line_ending))(i)?;
+    Ok((i, ()))
+}
+
 fn passport(i: &str) -> IResult<&str, Passport> {
-    let (i, pairs) = many1(pair)(i)?;
-    let (i, _) = line_ending(i)?;
+    let (i, pairs) = separated_list1(pair_sep, pair)(i)?;
     Ok((i, Passport(pairs.into_iter().collect())))
 }
 
+fn passport_sep(i: &str) -> IResult<&str, ()> {
+    let (i, _) = line_ending(i)?;
+    let (i, _) = line_ending(i)?;
+    Ok((i, ()))
+}
+
 fn input(i: &str) -> IResult<&str, Vec<Passport>> {
-    many1(passport)(i)
+    separated_list1(passport_sep, passport)(i)
 }
 
 fn main() {
