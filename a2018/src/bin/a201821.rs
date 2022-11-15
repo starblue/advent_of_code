@@ -57,28 +57,6 @@ fn compute_r5(first: bool) -> i64 {
 }
 
 fn main() {
-    // let mut input_data = String::new();
-    // io::stdin()
-    //     .read_to_string(&mut input_data)
-    //     .expect("I/O error");
-
-    // // make nom happy
-    // input_data.push('\n');
-
-    // // parse input
-    // let result = input(&input_data);
-    // //println!("{:?}", result);
-
-    // let data = result.unwrap().1;
-
-    // let ip_reg = data.0;
-    // let instrs = data.1;
-
-    // for i in 0..instrs.len() {
-    //     println!("{}: {}", i, instrs[i]);
-    // }
-    // println!();
-
     println!("1: {}", compute_first_r5());
     println!("2: {}", compute_last_r5());
 }
