@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::io;
-use std::io::Read;
 use std::str::FromStr;
 
 use nom::bytes::complete::tag;
@@ -244,13 +243,7 @@ impl State {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = input(&input_data);

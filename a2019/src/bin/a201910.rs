@@ -3,7 +3,6 @@ use core::cmp;
 use std::collections::BTreeMap;
 use std::collections::HashSet;
 use std::io;
-use std::io::Read;
 
 use nom::branch::alt;
 use nom::character::complete::char;
@@ -77,10 +76,7 @@ fn polar(v: Vec2d) -> (i64, Direction) {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = input(&input_data);

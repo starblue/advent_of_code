@@ -4,7 +4,6 @@ use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::fmt;
 use std::io;
-use std::io::Read;
 
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -224,13 +223,7 @@ fn game_position(i: &str) -> IResult<&str, GamePosition> {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = game_position(&input_data);

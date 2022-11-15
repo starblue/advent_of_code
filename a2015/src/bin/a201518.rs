@@ -1,7 +1,6 @@
 use core::fmt;
 
 use std::io;
-use std::io::Read;
 
 use nom::branch::alt;
 use nom::character::complete::char;
@@ -56,13 +55,7 @@ fn is_corner(map: &Array2d<i32, Cell>, p: Point2d<i32>) -> bool {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = lines(&input_data);

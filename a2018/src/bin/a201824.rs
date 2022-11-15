@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::io;
-use std::io::Read;
 use std::iter::repeat;
 use std::str::FromStr;
 
@@ -329,13 +328,7 @@ fn fight(groups: Vec<Group>) -> Vec<Group> {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = input(&input_data);

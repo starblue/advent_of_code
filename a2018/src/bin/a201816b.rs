@@ -1,6 +1,5 @@
 use std::collections::hash_set::HashSet;
 use std::io;
-use std::io::Read;
 use std::iter::repeat;
 use std::iter::repeat_with;
 use std::str::FromStr;
@@ -163,13 +162,7 @@ fn input(i: &str) -> IResult<&str, (Vec<Sample>, Vec<Instr>)> {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = input(&input_data);

@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::io;
-use std::io::Read;
 
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
@@ -26,13 +25,7 @@ fn input(i: &str) -> IResult<&str, Vec<Vec<String>>> {
 }
 
 fn main() {
-    let mut input_data = String::new();
-    io::stdin()
-        .read_to_string(&mut input_data)
-        .expect("I/O error");
-
-    // make nom happy
-    input_data.push('\n');
+    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
     // parse input
     let result = input(&input_data);
