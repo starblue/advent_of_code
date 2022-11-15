@@ -126,7 +126,7 @@ impl Parser {
             result
         } else {
             let result = match &*expr {
-                Expr::Lit(c) => (end - start == 1 && msg[start] == *c),
+                Expr::Lit(c) => end - start == 1 && msg[start] == *c,
                 Expr::Rule(n) => self.parses_as_rule(table, msg, *n, start, end),
                 Expr::Seq(e0, e1) => ((start + 1)..end).any(|mid| {
                     self.parses_as_expr(table, msg, e0.clone(), start, mid)
