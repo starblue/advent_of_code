@@ -3,6 +3,7 @@ edition = "2021"
 name = "a2019"
 version = "0.1.0"
 authors = ["Juergen Stuber <juergen@jstuber.net>"]
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 nom = "7.0.0"

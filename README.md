@@ -26,3 +26,13 @@ to the parsed input; I use that for validating the parser.
 2015 day 20 and 2020 day 25 use local crates which are not yet published,
 for factorizing integers and for computing modulo.
 I apologize and hope you can still make sense of them.
+
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+  http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
