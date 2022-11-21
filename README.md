@@ -27,6 +27,21 @@ to the parsed input; I use that for validating the parser.
 for factorizing integers and for computing modulo.
 I apologize and hope you can still make sense of them.
 
+## Usage
+
+Most solutions accept the input on `stdin`, so you can run them
+like this from the workspace root:
+```
+cargo run --bin a201501 < data/a201501.txt
+```
+Some solutions have the input hardcoded, when the input was given directly
+in the problem statement and not in a separate downloadable file.
+In this case you can simply run them like this:
+```
+cargo run --bin a201504
+```
+
+
 ## License
 
 Licensed under either of
