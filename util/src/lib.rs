@@ -1,3 +1,12 @@
+mod runtime_error;
+#[macro_export]
+macro_rules! runtime_error {
+    ($($t:tt)*) => {
+        RuntimeError::new(format!($($t)*))
+    };
+}
+pub use runtime_error::RuntimeError;
+
 mod disjoint_sets;
 pub use disjoint_sets::DisjointSets;
 
