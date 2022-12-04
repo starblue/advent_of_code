@@ -1,5 +1,6 @@
 use core::fmt;
 
+use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -144,22 +145,23 @@ fn input(i: &str) -> IResult<&str, Vec<Round>> {
     many1(round)(i)
 }
 
-fn main() {
-    let input_data = io::read_to_string(io::stdin()).expect("I/O error");
+fn main() -> Result<(), Box<dyn error::Error>> {
+    let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
-    let result = input(&input_data);
-    //println!("{:?}", result);
+    let result = input(&input_data).map_err(|e| e.to_owned())?;
 
-    let input = result.unwrap().1;
+    let input = result.1;
     // for round in &input {
     //     println!("{}", round);
     // }
 
-    let result_a = input.iter().map(|r| r.score1()).sum::<i64>();
+    let result1 = input.iter().map(|r| r.score1()).sum::<i64>();
 
-    let result_b = input.iter().map(|r| r.score2()).sum::<i64>();
+    let result2 = input.iter().map(|r| r.score2()).sum::<i64>();
 
-    println!("a: {}", result_a);
-    println!("b: {}", result_b);
+    println!("Part 1: {}", result1);
+    println!("Part 2: {}", result2);
+
+    Ok(())
 }

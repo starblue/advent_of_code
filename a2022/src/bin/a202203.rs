@@ -11,12 +11,10 @@ fn usv(c: char) -> i64 {
 }
 
 fn priority(c: char) -> Result<i64, RuntimeError> {
-    if 'a' <= c && c <= 'z' {
-        Ok(usv(c) - usv('a') + 1)
-    } else if 'A' <= c && c <= 'Z' {
-        Ok(usv(c) - usv('A') + 27)
-    } else {
-        Err(runtime_error!("not an item type: '{}' ({:#x})", c, usv(c)))
+    match c {
+        'a'..='z' => Ok(usv(c) - usv('a') + 1),
+        'A'..='Z' => Ok(usv(c) - usv('A') + 27),
+        _ => Err(runtime_error!("not an item type: '{}' ({:#x})", c, usv(c))),
     }
 }
 
@@ -33,7 +31,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         let c = common
             .into_iter()
             .next()
-            .ok_or(runtime_error!("no common item type found"))?;
+            .ok_or_else(|| runtime_error!("no common item type found"))?;
         sum += priority(c)?;
     }
     let result1 = sum;
@@ -51,13 +49,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         let c = common
             .into_iter()
             .next()
-            .ok_or(runtime_error!("no badge found"))?;
+            .ok_or_else(|| runtime_error!("no badge found"))?;
         sum += priority(c)?;
     }
     let result2 = sum;
 
-    println!("a: {}", result1);
-    println!("b: {}", result2);
+    println!("Part 1: {}", result1);
+    println!("Part 2: {}", result2);
 
     Ok(())
 }

@@ -89,8 +89,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let result2 = input.iter().filter(|&&p| p.has_overlap()).count();
 
-    println!("a: {}", result1);
-    println!("b: {}", result2);
+    println!("Part 1: {}", result1);
+    println!("Part 2: {}", result2);
 
     Ok(())
 }
