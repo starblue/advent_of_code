@@ -1,6 +1,5 @@
 use core::str::FromStr;
 
-use std::error;
 use std::io;
 
 use nom::character::complete::digit1;
@@ -11,7 +10,6 @@ use nom::multi::separated_list1;
 use nom::IResult;
 
 use util::runtime_error;
-use util::RuntimeError;
 
 fn int(i: &str) -> IResult<&str, i64> {
     map_res(digit1, FromStr::from_str)(i)
@@ -31,7 +29,7 @@ fn input(i: &str) -> IResult<&str, Vec<Vec<i64>>> {
     separated_list1(line_ending, elf)(i)
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input

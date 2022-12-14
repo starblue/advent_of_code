@@ -1,6 +1,5 @@
 use core::fmt;
 
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -145,7 +144,7 @@ fn input(i: &str) -> IResult<&str, Vec<Round>> {
     many1(round)(i)
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input

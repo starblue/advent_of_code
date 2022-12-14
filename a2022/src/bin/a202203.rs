@@ -1,16 +1,14 @@
 use std::collections::HashSet;
-use std::error;
 use std::io;
 
 use util::runtime_error;
-use util::RuntimeError;
 
 /// Return the Unicode scalar value of a `char`.
 fn usv(c: char) -> i64 {
     i64::from(u32::from(c))
 }
 
-fn priority(c: char) -> Result<i64, RuntimeError> {
+fn priority(c: char) -> util::Result<i64> {
     match c {
         'a'..='z' => Ok(usv(c) - usv('a') + 1),
         'A'..='Z' => Ok(usv(c) - usv('A') + 27),
@@ -18,7 +16,7 @@ fn priority(c: char) -> Result<i64, RuntimeError> {
     }
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input = io::read_to_string(io::stdin())?;
     let lines = input.lines().collect::<Vec<_>>();
 

@@ -2,7 +2,6 @@ use core::fmt;
 use core::str::FromStr;
 
 use std::collections::VecDeque;
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -155,7 +154,7 @@ fn input(i: &str) -> IResult<&str, Input> {
     Ok((i, Input { monkeys }))
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
@@ -192,7 +191,6 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let mut monkeys = input.monkeys;
     let modulus = monkeys.iter().fold(1_i64, |a, m| a.lcm(&m.test_divisor));
-    println!("modulus {}", modulus);
     let mut inspection_counts = monkeys.iter().map(|_| 0_usize).collect::<Vec<_>>();
     for _round in 0..10000 {
         for i in 0..monkeys.len() {

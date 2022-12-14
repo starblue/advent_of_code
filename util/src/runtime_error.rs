@@ -2,10 +2,12 @@ use core::fmt;
 
 use std::error;
 
+pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
+
 #[derive(Clone, Debug)]
 pub struct RuntimeError(String);
 impl fmt::Display for RuntimeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
 }
@@ -18,3 +20,7 @@ impl RuntimeError {
     }
 }
 impl error::Error for RuntimeError {}
+
+pub fn make_runtime_error(message: String) -> Box<dyn error::Error> {
+    Box::new(RuntimeError::new(message))
+}

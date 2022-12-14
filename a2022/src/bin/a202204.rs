@@ -1,7 +1,6 @@
 use core::fmt;
 use core::str::FromStr;
 
-use std::error;
 use std::io;
 
 use nom::character::complete::char;
@@ -74,7 +73,7 @@ fn input(i: &str) -> IResult<&str, Vec<Pair>> {
     many1(pair)(i)
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input

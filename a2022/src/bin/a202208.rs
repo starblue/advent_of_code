@@ -1,6 +1,5 @@
 use core::fmt;
 
-use std::error;
 use std::io;
 
 use nom::character::complete::line_ending;
@@ -15,6 +14,8 @@ use lowdim::BBox2d;
 use lowdim::Point2d;
 use lowdim::Vec2d;
 use lowdim::Vector;
+
+use util::runtime_error;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Tree {
@@ -111,14 +112,13 @@ fn input(i: &str) -> IResult<&str, HeightMap> {
     Ok((i, HeightMap::new(Array2d::from_vec(rows))))
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
-    let result = input(&input_data);
-    //println!("{:?}", result);
+    let result = input(&input_data).map_err(|e| e.to_owned())?;
 
-    let input = result.unwrap().1;
+    let input = result.1;
     // println!("{}", input);
 
     let result1 = input.visible_count();
@@ -128,7 +128,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         .iter()
         .map(|p| input.scenic_score(p))
         .max()
-        .unwrap();
+        .ok_or_else(|| runtime_error!("empty input"))?;
 
     println!("Part 1: {}", result1);
     println!("Part 2: {}", result2);

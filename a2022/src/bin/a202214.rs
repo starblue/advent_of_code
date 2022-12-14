@@ -1,7 +1,6 @@
 use core::fmt;
 use core::str::FromStr;
 
-use std::error;
 use std::io;
 
 use nom::bytes::complete::tag;
@@ -27,10 +26,9 @@ struct Path {
     points: Vec<Point2d>,
 }
 impl Path {
-    fn draw_on(&self, map: &mut Array2d<i64, Square>) {
-        assert!(self.points.len() >= 2);
+    fn draw_on(&self, map: &mut Array2d<i64, Square>) -> util::Result<()> {
         let mut iter = self.points.iter();
-        let mut pos = *iter.next().unwrap();
+        let mut pos = *iter.next().ok_or_else(|| "empty rock formation")?;
         map[pos] = Square::Rock;
         for &next_pos in iter {
             let delta = (next_pos - pos).signum();
@@ -40,6 +38,7 @@ impl Path {
                 map[pos] = Square::Rock;
             }
         }
+        Ok(())
     }
 }
 impl fmt::Display for Path {
@@ -132,7 +131,7 @@ fn simulate_sand(map: &mut Array2d<i64, Square>, source: Point2d) -> usize {
     }
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
@@ -152,7 +151,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let mut map1 = Array2d::new(bbox, Square::Empty);
     for path in &input {
-        path.draw_on(&mut map1);
+        path.draw_on(&mut map1)?;
     }
     let result1 = simulate_sand(&mut map1, source);
 
@@ -166,7 +165,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         map2[p2d(x, y_max)] = Square::Rock;
     }
     for path in &input {
-        path.draw_on(&mut map2);
+        path.draw_on(&mut map2)?;
     }
     let result2 = simulate_sand(&mut map2, source);
 

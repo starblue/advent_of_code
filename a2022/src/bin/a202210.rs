@@ -1,7 +1,6 @@
 use core::fmt;
 use core::str::FromStr;
 
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -95,7 +94,7 @@ impl Cpu {
     }
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input

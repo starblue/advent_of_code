@@ -2,7 +2,6 @@ use core::fmt;
 use core::str::FromStr;
 use std::collections::HashSet;
 
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -20,6 +19,8 @@ use lowdim::v2d;
 use lowdim::Point2d;
 use lowdim::Vec2d;
 use lowdim::Vector;
+
+use util::runtime_error;
 
 #[derive(Clone, Copy, Debug)]
 enum Direction {
@@ -129,8 +130,11 @@ impl Rope {
             }
         }
     }
-    fn tail(&self) -> Point2d {
-        *self.knots.last().unwrap()
+    fn tail(&self) -> util::Result<Point2d> {
+        self.knots
+            .last()
+            .ok_or_else(|| runtime_error!("empty rope"))
+            .copied()
     }
 }
 impl fmt::Display for Rope {
@@ -144,7 +148,7 @@ impl fmt::Display for Rope {
     }
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
@@ -155,22 +159,22 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let mut visited = HashSet::new();
     let mut rope = Rope::new(2);
-    visited.insert(rope.tail());
+    visited.insert(rope.tail()?);
     for motion in &input.motions {
         for _ in 0..motion.distance {
             rope.execute_step(motion.direction);
-            visited.insert(rope.tail());
+            visited.insert(rope.tail()?);
         }
     }
     let result1 = visited.len();
 
     let mut visited = HashSet::new();
     let mut rope = Rope::new(10);
-    visited.insert(rope.tail());
+    visited.insert(rope.tail()?);
     for motion in &input.motions {
         for _ in 0..motion.distance {
             rope.execute_step(motion.direction);
-            visited.insert(rope.tail());
+            visited.insert(rope.tail()?);
         }
     }
     let result2 = visited.len();

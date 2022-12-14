@@ -1,9 +1,4 @@
-use std::error;
-
 mod runtime_error;
-pub fn make_runtime_error(message: String) -> Box<dyn error::Error> {
-    Box::new(RuntimeError::new(message))
-}
 #[macro_export]
 macro_rules! runtime_error {
     ($($t:tt)*) => {
@@ -13,6 +8,8 @@ macro_rules! runtime_error {
         }
     };
 }
+pub use runtime_error::make_runtime_error;
+pub use runtime_error::Result;
 pub use runtime_error::RuntimeError;
 
 mod disjoint_sets;

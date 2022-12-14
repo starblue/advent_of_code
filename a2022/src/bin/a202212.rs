@@ -1,6 +1,5 @@
 use core::fmt;
 
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -18,6 +17,8 @@ use lowdim::p2d;
 use lowdim::Array2d;
 use lowdim::BBox2d;
 use lowdim::Point2d;
+
+use util::runtime_error;
 
 /// Return the Unicode scalar value of a `char`.
 fn usv(c: char) -> i64 {
@@ -110,7 +111,7 @@ fn input(i: &str) -> IResult<&str, HeightMap> {
     Ok((i, HeightMap::new(Array2d::from_vec(rows))))
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
@@ -120,13 +121,18 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     // println!("{}", input);
 
     let map = input.clone();
-    let start_node = map.start_pos().unwrap();
-    let target_pos = map.end_pos().unwrap();
+    let start_node = map
+        .start_pos()
+        .ok_or_else(|| runtime_error!("start position not found"))?;
+    let target_pos = map
+        .end_pos()
+        .ok_or_else(|| runtime_error!("end position not found"))?;
     let successors = |&p: &Point2d| {
         let map = &map;
+        let height = map.height(p).unwrap();
         p.neighbors_l1().filter_map(move |np: Point2d| {
-            if let Some(np_height) = map.height(np) {
-                if np_height <= map.height(p).unwrap() + 1 {
+            if let Some(new_height) = map.height(np) {
+                if new_height <= height + 1 {
                     Some((np, 1))
                 } else {
                     None
@@ -140,16 +146,19 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let success = |p: &Point2d| *p == target_pos;
 
     let search_result = astar(&start_node, successors, heuristic, success);
-    let (_path, cost) = search_result.unwrap();
+    let (_path, cost) = search_result.ok_or_else(|| runtime_error!("no path found"))?;
     let result1 = cost;
 
     let map = input;
-    let start_node = map.end_pos().unwrap();
+    let start_node = map
+        .end_pos()
+        .ok_or_else(|| runtime_error!("end position not found"))?;
     let successors = |&p: &Point2d| {
         let map = &map;
+        let height = map.height(p).unwrap();
         p.neighbors_l1().filter_map(move |np: Point2d| {
-            if let Some(np_height) = map.height(np) {
-                if np_height + 1 >= map.height(p).unwrap() {
+            if let Some(new_height) = map.height(np) {
+                if new_height + 1 >= height {
                     Some((np, 1))
                 } else {
                     None
@@ -163,7 +172,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let success = |&p: &Point2d| map.height(p).unwrap() == 0;
 
     let search_result = astar(&start_node, successors, heuristic, success);
-    let (_path, cost) = search_result.unwrap();
+    let (_path, cost) = search_result.ok_or_else(|| runtime_error!("no path found"))?;
     let result2 = cost;
 
     println!("Part 1: {}", result1);

@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::error;
 use std::io;
 
 fn all_different(chars: &[char]) -> bool {
@@ -20,7 +19,7 @@ fn start_of_message(s: &str) -> usize {
     start_pos(s, 14)
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input = io::read_to_string(io::stdin())?;
 
     let result1 = start_of_packet(&input);

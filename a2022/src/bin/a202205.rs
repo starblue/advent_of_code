@@ -1,7 +1,6 @@
 use core::fmt;
 use core::str::FromStr;
 
-use std::error;
 use std::io;
 
 use nom::branch::alt;
@@ -19,7 +18,6 @@ use nom::multi::separated_list1;
 use nom::IResult;
 
 use util::runtime_error;
-use util::RuntimeError;
 
 #[derive(Clone, Copy, Debug)]
 struct Crate {
@@ -52,7 +50,7 @@ struct Stacks {
     stacks: Vec<Vec<Crate>>,
 }
 impl Stacks {
-    fn from_rows(rows: Vec<Vec<Option<Crate>>>) -> Result<Stacks, RuntimeError> {
+    fn from_rows(rows: Vec<Vec<Option<Crate>>>) -> util::Result<Stacks> {
         let len = rows
             .iter()
             .map(|r| r.len())
@@ -71,7 +69,7 @@ impl Stacks {
         }
         Ok(Stacks { stacks })
     }
-    fn by_rows(&self) -> Result<Vec<Vec<Option<Crate>>>, RuntimeError> {
+    fn by_rows(&self) -> util::Result<Vec<Vec<Option<Crate>>>> {
         let mut rows = Vec::new();
         let mut i = self.max_height()? - 1;
         loop {
@@ -83,14 +81,14 @@ impl Stacks {
         }
         Ok(rows)
     }
-    fn max_height(&self) -> Result<usize, RuntimeError> {
+    fn max_height(&self) -> util::Result<usize> {
         self.stacks
             .iter()
             .map(|s| s.len())
             .max()
             .ok_or_else(|| runtime_error!("diagram is empty"))
     }
-    fn move_crate(&mut self, from: usize, to: usize) -> Result<(), RuntimeError> {
+    fn move_crate(&mut self, from: usize, to: usize) -> util::Result<()> {
         if let Some(c) = self.stacks[from - 1].pop() {
             self.stacks[to - 1].push(c);
         } else {
@@ -98,14 +96,14 @@ impl Stacks {
         }
         Ok(())
     }
-    fn execute1(&mut self, step: &Step) -> Result<(), RuntimeError> {
+    fn execute1(&mut self, step: &Step) -> util::Result<()> {
         let Step { quantity, from, to } = step;
         for _ in 0..*quantity {
             self.move_crate(*from, *to)?;
         }
         Ok(())
     }
-    fn execute2(&mut self, step: &Step) -> Result<(), RuntimeError> {
+    fn execute2(&mut self, step: &Step) -> util::Result<()> {
         let Step { quantity, from, to } = step;
         let stack0 = &mut self.stacks[from - 1];
         let mut moved_crates = stack0.split_off(stack0.len() - quantity);
@@ -212,7 +210,7 @@ fn input(i: &str) -> IResult<&str, Input> {
     Ok((i, Input { stacks, steps }))
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> util::Result<()> {
     let input_data = io::read_to_string(io::stdin())?;
 
     // parse input
