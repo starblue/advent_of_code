@@ -9,6 +9,7 @@ macro_rules! runtime_error {
     };
 }
 pub use runtime_error::make_runtime_error;
+pub use runtime_error::Error;
 pub use runtime_error::Result;
 pub use runtime_error::RuntimeError;
 
