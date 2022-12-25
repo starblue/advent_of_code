@@ -95,7 +95,7 @@ enum Command {
 impl fmt::Display for Command {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Command::Cd(path) => write!(f, "$ cd {}\n", path),
+            Command::Cd(path) => writeln!(f, "$ cd {}", path),
             Command::Ls(dir_listing) => write!(f, "$ ls\n{}", dir_listing),
         }
     }
@@ -214,8 +214,7 @@ impl Dir {
         self.entries
             .borrow()
             .as_ref()
-            .map(|es| es.get(name).cloned())
-            .flatten()
+            .and_then(|entries| entries.get(name).cloned())
     }
     fn subdirs(&self) -> util::Result<Vec<Rc<Dir>>> {
         if let Some(entries) = &mut *self.entries.borrow_mut() {
@@ -316,10 +315,11 @@ impl FileSystem {
     fn execute_cd(&mut self, path: &Path) -> util::Result<()> {
         match path {
             Path::Down { dir_name } => {
-                if let Item::Dir(dir) = self
-                    .working_dir
-                    .lookup(&dir_name)
-                    .ok_or(runtime_error!("directory {} not found", dir_name))?
+                if let Item::Dir(dir) =
+                    self.working_dir.lookup(dir_name).ok_or(runtime_error!(
+                        "directory {} not found",
+                        dir_name
+                    ))?
                 {
                     self.working_dir = dir;
                 } else {

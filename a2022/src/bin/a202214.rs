@@ -28,7 +28,7 @@ struct Path {
 impl Path {
     fn draw_on(&self, map: &mut Array2d<i64, Square>) -> util::Result<()> {
         let mut iter = self.points.iter();
-        let mut pos = *iter.next().ok_or_else(|| "empty rock formation")?;
+        let mut pos = *iter.next().ok_or("empty rock formation")?;
         map[pos] = Square::Rock;
         for &next_pos in iter {
             let delta = (next_pos - pos).signum();

@@ -166,8 +166,8 @@ fn main() -> util::Result<()> {
     let mut monkeys = input.monkeys.clone();
 
     // Make sure we can use indices and ids interchangably.
-    for i in 0..monkeys.len() {
-        assert_eq!(i, monkeys[i].id);
+    for (i, monkey) in monkeys.iter().enumerate() {
+        assert_eq!(i, monkey.id);
     }
 
     let mut inspection_counts = monkeys.iter().map(|_| 0_usize).collect::<Vec<_>>();
