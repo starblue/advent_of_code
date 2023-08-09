@@ -315,11 +315,10 @@ impl FileSystem {
     fn execute_cd(&mut self, path: &Path) -> util::Result<()> {
         match path {
             Path::Down { dir_name } => {
-                if let Item::Dir(dir) =
-                    self.working_dir.lookup(dir_name).ok_or(runtime_error!(
-                        "directory {} not found",
-                        dir_name
-                    ))?
+                if let Item::Dir(dir) = self
+                    .working_dir
+                    .lookup(dir_name)
+                    .ok_or(runtime_error!("directory {} not found", dir_name))?
                 {
                     self.working_dir = dir;
                 } else {

@@ -167,9 +167,7 @@ fn height(jets: &[Jet], n: i64) -> i64 {
 
         count += 1;
 
-        if usize::try_from(chamber.rock_height()).unwrap() >= TOP_LEN
-            && iterations_height == 0
-        {
+        if usize::try_from(chamber.rock_height()).unwrap() >= TOP_LEN && iterations_height == 0 {
             // Look for a repeated state.
 
             let chamber_top = chamber.top();

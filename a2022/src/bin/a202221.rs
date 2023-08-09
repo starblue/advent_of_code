@@ -184,15 +184,13 @@ fn main() -> util::Result<()> {
             Job::Const(vn) => {
                 values.insert(n.clone(), *vn);
             }
-            Job::Op(Operation { op, a, b }) => {
-                match (values.get(a), values.get(b)) {
-                    (Some(&va), Some(&vb)) => {
-                        let vn = op.apply(va, vb);
-                        values.insert(n.clone(), vn);
-                    }
-                    _ => unresolved.push_back(n),
+            Job::Op(Operation { op, a, b }) => match (values.get(a), values.get(b)) {
+                (Some(&va), Some(&vb)) => {
+                    let vn = op.apply(va, vb);
+                    values.insert(n.clone(), vn);
                 }
-            }
+                _ => unresolved.push_back(n),
+            },
         }
     }
     let result1 = values

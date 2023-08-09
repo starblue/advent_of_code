@@ -132,11 +132,7 @@ impl Context {
             .map(|v| Valve {
                 id: ids[&v.id],
                 flow_rate: v.flow_rate,
-                tunnels_to: v
-                    .tunnels_to
-                    .iter()
-                    .map(|s| ids[s])
-                    .collect::<Vec<_>>(),
+                tunnels_to: v.tunnels_to.iter().map(|s| ids[s]).collect::<Vec<_>>(),
             })
             .collect::<Vec<_>>();
         let distances = distances(&valves);
@@ -184,11 +180,7 @@ struct State<'s> {
     value: i64,
 }
 impl<'s> State<'s> {
-    fn start(
-        context: &'s Context,
-        n_workers: usize,
-        remaining_time: i64,
-    ) -> State<'s> {
+    fn start(context: &'s Context, n_workers: usize, remaining_time: i64) -> State<'s> {
         let remaining_valves = context.useful_valves();
         let value = 0;
         let workers = (0..n_workers)
@@ -225,9 +217,8 @@ impl<'s> State<'s> {
                     // We already account for its effect on the value now.
                     // Time doesn't progress yet, as more workers may be idle.
                     let valve = &self.context.valves[pos];
-                    let remaining_time = self.remaining_time
-                        - self.context.distance(worker.pos, pos)
-                        - 1;
+                    let remaining_time =
+                        self.remaining_time - self.context.distance(worker.pos, pos) - 1;
                     if remaining_time > 0 {
                         let mut workers = self.workers.clone();
                         workers[wi].pos = pos;
@@ -238,10 +229,8 @@ impl<'s> State<'s> {
                             .filter(|&&id| id != pos)
                             .copied()
                             .collect::<Vec<_>>();
-                        let remaining_flow =
-                            self.remaining_flow - valve.flow_rate;
-                        let value =
-                            self.value + valve.flow_rate * remaining_time;
+                        let remaining_flow = self.remaining_flow - valve.flow_rate;
+                        let value = self.value + valve.flow_rate * remaining_time;
                         let new_state = State {
                             context: self.context,
                             workers,
@@ -263,8 +252,7 @@ impl<'s> State<'s> {
             } else {
                 // All workers are busy.
                 // Advance time until the first one is ready again.
-                let remaining_time =
-                    self.workers.iter().map(|w| w.busy_until).max().unwrap();
+                let remaining_time = self.workers.iter().map(|w| w.busy_until).max().unwrap();
                 let mut new_state = self.clone();
                 new_state.remaining_time = remaining_time;
                 for worker in &mut new_state.workers {

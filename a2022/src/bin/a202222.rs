@@ -215,9 +215,7 @@ impl State {
         self.dir = self.dir.rotate_left();
     }
     fn password(&self) -> util::Result<i64> {
-        Ok(1000 * (self.pos.y() + 1)
-            + 4 * (self.pos.x() + 1)
-            + facing(self.dir)?)
+        Ok(1000 * (self.pos.y() + 1) + 4 * (self.pos.x() + 1) + facing(self.dir)?)
     }
 }
 
@@ -373,9 +371,7 @@ fn main() -> util::Result<()> {
                     match map[next_state.pos] {
                         Square::None => {
                             // This must not happen.
-                            return Err(runtime_error!(
-                                "we fell off the edge"
-                            ));
+                            return Err(runtime_error!("we fell off the edge"));
                         }
                         Square::Open => {
                             // We made a step.

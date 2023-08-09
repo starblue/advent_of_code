@@ -91,15 +91,13 @@ struct Blueprint {
 }
 impl Blueprint {
     fn new(id: i32, bots: Vec<Robot>) -> Blueprint {
-        let robots = ResourceMap::with(|rt| {
-            bots.iter().cloned().find(|b| b.product == rt).unwrap()
-        });
+        let robots =
+            ResourceMap::with(|rt| bots.iter().cloned().find(|b| b.product == rt).unwrap());
         let mut max_production = ResourceMap::<i32>::new();
         // Limit production to maximum that can be used.
         for robot in bots {
             for rt in RESOURCE_TYPES {
-                max_production[rt] =
-                    max_production[rt].max(robot.cost.resources[rt]);
+                max_production[rt] = max_production[rt].max(robot.cost.resources[rt]);
             }
         }
         // Don't limit geode production.
@@ -299,10 +297,7 @@ impl ops::SubAssign<&ResourceMap<i32>> for ResourceMap<i32> {
     }
 }
 
-fn partial_and_then(
-    a: Option<cmp::Ordering>,
-    b: Option<cmp::Ordering>,
-) -> Option<cmp::Ordering> {
+fn partial_and_then(a: Option<cmp::Ordering>, b: Option<cmp::Ordering>) -> Option<cmp::Ordering> {
     use cmp::Ordering::*;
     match (a, b) {
         (Some(Less), Some(Less)) => Some(Less),
@@ -313,10 +308,7 @@ fn partial_and_then(
     }
 }
 impl PartialOrd<ResourceMap<i32>> for ResourceMap<i32> {
-    fn partial_cmp(
-        &self,
-        other: &ResourceMap<i32>,
-    ) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &ResourceMap<i32>) -> Option<std::cmp::Ordering> {
         partial_and_then(
             partial_and_then(
                 partial_and_then(
@@ -361,9 +353,7 @@ impl State {
         } else {
             // Can we improve the maximum if we produce a new geode robot
             // every minute?
-            if self.resources[Geode]
-                + self.minutes * self.robots[Geode]
-                + s(self.minutes - 1)
+            if self.resources[Geode] + self.minutes * self.robots[Geode] + s(self.minutes - 1)
                 < max_geodes
             {
                 // This can't improve the maximum, cut it.
@@ -385,8 +375,7 @@ impl State {
                         if self.robots[rt] < blueprint.max_production[rt] {
                             // Produce robot, as its product may be needed.
                             let minutes = self.minutes - 1;
-                            let resources =
-                                &self.resources - robot_cost + &self.robots;
+                            let resources = &self.resources - robot_cost + &self.robots;
                             let mut robots = self.robots.clone();
                             robots[rt] += 1;
                             let state = State {
@@ -394,8 +383,7 @@ impl State {
                                 resources,
                                 robots,
                             };
-                            max_geodes =
-                                state.max_geodes(blueprint, table, max_geodes);
+                            max_geodes = state.max_geodes(blueprint, table, max_geodes);
                         }
                     } else {
                         // We can't build this robot due to lack of resources.
@@ -412,8 +400,7 @@ impl State {
                         resources,
                         robots,
                     };
-                    max_geodes =
-                        state.max_geodes(blueprint, table, max_geodes);
+                    max_geodes = state.max_geodes(blueprint, table, max_geodes);
                 }
 
                 table.insert(self.clone(), max_geodes);

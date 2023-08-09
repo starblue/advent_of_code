@@ -216,9 +216,7 @@ impl Valley {
         })
     }
     fn is_allowed_pos(&self, pos: Point2d) -> bool {
-        self.inner_bbox.contains(&pos)
-            || pos == self.start_pos
-            || pos == self.goal_pos
+        self.inner_bbox.contains(&pos) || pos == self.start_pos || pos == self.goal_pos
     }
     fn blizzard_pos_at(&self, blizzard: &Blizzard, minute: i64) -> Point2d {
         (blizzard.pos + minute * blizzard.dir) % self.inner_bbox
@@ -277,11 +275,9 @@ impl<'a> Node<'a> {
                 let valley = self.valley;
                 let pos = self.pos + v;
                 let minute = self.minute + 1;
-                let additional_legs = self.additional_legs
-                    - if self.pos == self.target_pos() { 1 } else { 0 };
-                if valley.is_allowed_pos(pos)
-                    && !valley.is_blizzard_at(pos, minute)
-                {
+                let additional_legs =
+                    self.additional_legs - if self.pos == self.target_pos() { 1 } else { 0 };
+                if valley.is_allowed_pos(pos) && !valley.is_blizzard_at(pos, minute) {
                     Some((
                         Node {
                             valley,
@@ -314,8 +310,7 @@ impl<'a> Node<'a> {
         self.start_pos().distance_l1(self.goal_pos())
     }
     fn heuristic(&self) -> i64 {
-        self.pos.distance_l1(self.target_pos())
-            + self.additional_legs * self.full_distance()
+        self.pos.distance_l1(self.target_pos()) + self.additional_legs * self.full_distance()
     }
     fn success(&self) -> bool {
         self.pos == self.target_pos() && self.additional_legs == 0
@@ -348,23 +343,19 @@ impl<'a> fmt::Display for Node<'a> {
                     if p == self.pos {
                         'E'
                     } else if self.valley.inner_bbox.contains(&p) {
-                        let blizzards =
-                            self.valley.blizzards_at(p, self.minute);
+                        let blizzards = self.valley.blizzards_at(p, self.minute);
                         if blizzards.is_empty() {
                             '.'
                         } else {
                             let len = blizzards.len();
                             if len == 1 {
-                                let d = Direction::try_from(blizzards[0].dir)
-                                    .unwrap();
+                                let d = Direction::try_from(blizzards[0].dir).unwrap();
                                 d.to_char()
                             } else {
                                 char::from_digit(len as u32, 10).unwrap()
                             }
                         }
-                    } else if p == self.valley.start_pos()
-                        || p == self.valley.goal_pos()
-                    {
+                    } else if p == self.valley.start_pos() || p == self.valley.goal_pos() {
                         '.'
                     } else {
                         '#'
@@ -396,8 +387,7 @@ fn main() -> util::Result<()> {
         Node::heuristic,
         Node::success,
     );
-    let (_path, cost) =
-        search_result.ok_or_else(|| runtime_error!("no path found"))?;
+    let (_path, cost) = search_result.ok_or_else(|| runtime_error!("no path found"))?;
     let result1 = cost;
 
     let start_node2 = Node::start(&valley, 3);
@@ -407,8 +397,7 @@ fn main() -> util::Result<()> {
         Node::heuristic,
         Node::success,
     );
-    let (_path, cost) =
-        search_result.ok_or_else(|| runtime_error!("no path found"))?;
+    let (_path, cost) = search_result.ok_or_else(|| runtime_error!("no path found"))?;
     let result2 = cost;
 
     println!("Part 1: {}", result1);

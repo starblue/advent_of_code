@@ -202,8 +202,8 @@ fn main() -> util::Result<()> {
     for _ in 0..10 {
         state.step();
     }
-    let bbox = BBox::enclosing(state.elves.iter().map(|e| &e.pos))
-        .ok_or(runtime_error!("no elves"))?;
+    let bbox =
+        BBox::enclosing(state.elves.iter().map(|e| &e.pos)).ok_or(runtime_error!("no elves"))?;
     let result1 = bbox.volume() - state.elves.len();
 
     let mut previous_elves = HashSet::new();
