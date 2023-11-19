@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::io;
 use std::str::FromStr;
@@ -12,6 +13,10 @@ use nom::combinator::recognize;
 use nom::multi::separated_list1;
 use nom::sequence::tuple;
 use nom::IResult;
+
+use lowdim::p2d;
+use lowdim::v2d;
+use lowdim::Vec2d;
 
 fn int64(i: &str) -> IResult<&str, i64> {
     map_res(
@@ -224,6 +229,20 @@ impl State {
     }
 }
 
+const WALL: i64 = 0;
+const MOVED: i64 = 1;
+const FOUND: i64 = 2;
+
+fn delta(command: i64) -> Vec2d {
+    match command {
+        1 => v2d(0, 1),
+        2 => v2d(0, -1),
+        3 => v2d(-1, 0),
+        4 => v2d(1, 0),
+        _ => panic!("Unknown command"),
+    }
+}
+
 fn main() {
     let input_data = io::read_to_string(io::stdin()).expect("I/O error");
 
@@ -233,8 +252,106 @@ fn main() {
 
     let mem = result.unwrap().1;
 
-    let result_a = 0;
-    let result_b = 0;
+    let commands = (1..=4).collect::<Vec<_>>();
+
+    // Do a breadth-first search using a queue (FIFO).
+    // To do this and avoid walking the robot back we clone the IntCode state
+    // (which might be considered cheating).
+    let mut queue = commands
+        .iter()
+        .map(|&c| {
+            let mut state = State::new("D", &mem);
+            state.push_input(c);
+            (state, p2d(0, 0), 1)
+        })
+        .collect::<VecDeque<_>>();
+
+    // We avoid revisiting positions which have already been visited.
+    let mut visited = HashSet::new();
+
+    let mut min_count = 0;
+    // We must assign some dummy state here.
+    // This will be assigned for real when we find the oxygen tank.
+    let mut state_at_oxygen = State::new("dummy", &[]);
+    while let Some((mut state, pos, count)) = queue.pop_front() {
+        visited.insert(pos);
+        if !state.is_halted() {
+            let mut output = None;
+            while !state.is_halted() && output.is_none() {
+                state.step();
+                output = state.pop_output();
+            }
+            match output {
+                Some(WALL) => {
+                    // We hit a wall, forget this state.
+                }
+                Some(MOVED) => {
+                    // We moved, enqueue further moves.
+                    for &command in &commands {
+                        let new_pos = pos + delta(command);
+                        if !visited.contains(&new_pos) {
+                            let mut state = state.clone();
+                            state.push_input(command);
+                            queue.push_back((state, new_pos, count + 1));
+                        }
+                    }
+                }
+                Some(FOUND) => {
+                    // We found the oxygen tank, finish.
+                    min_count = count;
+                    state_at_oxygen = state;
+                    break;
+                }
+                _ => panic!("unexpected output value"),
+            }
+        }
+    }
+    let result_a = min_count;
+
+    // Do a new breadth-first search starting at the oxygen tank.
+    let mut queue = commands
+        .iter()
+        .map(|&c| {
+            let mut state = state_at_oxygen.clone();
+            state.push_input(c);
+            (state, p2d(0, 0), 1)
+        })
+        .collect::<VecDeque<_>>();
+    let mut visited = HashSet::new();
+
+    let mut max_count = 0;
+    while let Some((mut state, pos, count)) = queue.pop_front() {
+        visited.insert(pos);
+        if !state.is_halted() {
+            let mut output = None;
+            while !state.is_halted() && output.is_none() {
+                state.step();
+                output = state.pop_output();
+            }
+            match output {
+                Some(WALL) => {
+                    // We hit a wall, forget this state.
+                }
+                Some(MOVED) => {
+                    // We moved, enqueue further moves.
+                    for &command in &commands {
+                        let new_pos = pos + delta(command);
+                        if !visited.contains(&new_pos) {
+                            let mut state = state.clone();
+                            state.push_input(command);
+                            queue.push_back((state, new_pos, count + 1));
+                        }
+                    }
+                    max_count = max_count.max(count);
+                }
+                Some(FOUND) => {
+                    max_count = max_count.max(count);
+                }
+                _ => panic!("unexpected output value"),
+            }
+        }
+    }
+    let result_b = max_count;
 
     println!("a: {}", result_a);
     println!("b: {}", result_b);
