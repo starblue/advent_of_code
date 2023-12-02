@@ -20,7 +20,9 @@ enum Color {
     Blue,
 }
 impl Color {
-    const COLORS: &'static [Color] = &[Color::Red, Color::Green, Color::Blue];
+    fn values() -> impl Iterator<Item = Color> {
+        [Color::Red, Color::Green, Color::Blue].into_iter()
+    }
 }
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -36,9 +38,7 @@ impl fmt::Display for Color {
 struct Reveal(Vec<(Color, usize)>);
 impl Reveal {
     fn possible(&self, max_reveal: &Reveal) -> bool {
-        Color::COLORS
-            .iter()
-            .all(|&c| self.count(c) <= max_reveal.count(c))
+        Color::values().all(|c| self.count(c) <= max_reveal.count(c))
     }
     fn count(&self, color: Color) -> usize {
         self.0
@@ -72,10 +72,7 @@ impl Game {
         self.moves.iter().map(|r| r.count(color)).max().unwrap_or(0)
     }
     fn power(&self) -> usize {
-        Color::COLORS
-            .iter()
-            .map(|&c| self.needed(c))
-            .product::<usize>()
+        Color::values().map(|c| self.needed(c)).product::<usize>()
     }
 }
 impl fmt::Display for Game {
