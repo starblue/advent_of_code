@@ -20,7 +20,7 @@ fn calibration_value1(s: &str) -> util::Result<u32> {
     let mut last_digit = None;
     for c in s.chars() {
         if let Some(d) = c.to_digit(10) {
-            if first_digit == None {
+            if first_digit.is_none() {
                 first_digit = Some(d);
             }
             last_digit = Some(d);
@@ -59,7 +59,7 @@ fn calibration_value2(s: &str) -> util::Result<u32> {
         for i in 0..s.len() {
             for (value, pattern) in DIGITS2 {
                 if s[i..].starts_with(pattern) {
-                    if first_digit == None {
+                    if first_digit.is_none() {
                         first_digit = Some(value);
                     }
                     last_digit = Some(value);
