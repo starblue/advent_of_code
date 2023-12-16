@@ -122,32 +122,32 @@ fn compute_count(table: &mut HashMap<State, usize>, state: State) -> usize {
             // Assume last spring is damaged.
             if let Some(&count) = state.counts.last() {
                 if len >= count {
-                    let new_len = len - count;
-                    if state.springs[new_len..len]
-                        .iter()
-                        .all(|&s| s == Spring::Damaged || s == Spring::Unknown)
-                    {
-                        let mut springs = state.springs[..new_len].to_vec();
-                        let counts = state.counts[..(state.counts.len() - 1)].to_vec();
-                        match springs.last() {
-                            Some(Spring::Unknown) => {
-                                // We assume that the last is operational,
-                                // to mark the beginning of the count.
-                                springs[new_len - 1] = Spring::Operational;
-                                let new_state = State { springs, counts };
-                                result += compute_count(table, new_state);
-                            }
-                            None | Some(Spring::Operational) => {
-                                let new_state = State { springs, counts };
-                                result += compute_count(table, new_state);
-                            }
-                            _ => {}
+                    let damaged_start = len - count;
+                    let (boundary, boundary_ok) = {
+                        if damaged_start > 0 {
+                            let boundary = damaged_start - 1;
+                            (
+                                boundary,
+                                state.springs[boundary] == Spring::Operational
+                                    || state.springs[boundary] == Spring::Unknown,
+                            )
+                        } else {
+                            (0, true)
                         }
+                    };
+                    if boundary_ok
+                        && state.springs[damaged_start..]
+                            .iter()
+                            .all(|&s| s == Spring::Damaged || s == Spring::Unknown)
+                    {
+                        let springs = state.springs[..boundary].to_vec();
+                        let counts = state.counts[..(state.counts.len() - 1)].to_vec();
+                        let new_state = State { springs, counts };
+                        result += compute_count(table, new_state);
                     }
                 }
             }
         }
-
         table.insert(state, result);
         result
     } else if state.counts.is_empty() {
