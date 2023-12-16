@@ -99,12 +99,12 @@ fn input(i: &str) -> IResult<&str, Input> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct State {
-    springs: Vec<Spring>,
-    counts: Vec<usize>,
+struct State<'a> {
+    springs: &'a [Spring],
+    counts: &'a [usize],
 }
 
-fn compute_count(table: &mut HashMap<State, usize>, state: State) -> usize {
+fn compute_count<'a>(table: &mut HashMap<State<'a>, usize>, state: State<'a>) -> usize {
     if let Some(&c) = table.get(&state) {
         c
     } else if let Some(&spring) = state.springs.last() {
@@ -113,8 +113,8 @@ fn compute_count(table: &mut HashMap<State, usize>, state: State) -> usize {
         let len = state.springs.len();
         if spring == Spring::Operational || spring == Spring::Unknown {
             // Assume last spring is operational.
-            let springs = state.springs[..state.springs.len() - 1].to_vec();
-            let counts = state.counts.clone();
+            let springs = &state.springs[..state.springs.len() - 1];
+            let counts = state.counts;
             let new_state = State { springs, counts };
             result += compute_count(table, new_state);
         }
@@ -140,8 +140,8 @@ fn compute_count(table: &mut HashMap<State, usize>, state: State) -> usize {
                             .iter()
                             .all(|&s| s == Spring::Damaged || s == Spring::Unknown)
                     {
-                        let springs = state.springs[..boundary].to_vec();
-                        let counts = state.counts[..(state.counts.len() - 1)].to_vec();
+                        let springs = &state.springs[..boundary];
+                        let counts = &state.counts[..(state.counts.len() - 1)];
                         let new_state = State { springs, counts };
                         result += compute_count(table, new_state);
                     }
@@ -187,8 +187,8 @@ fn main() -> util::Result<()> {
     let mut sum = 0;
     for row in &input.rows {
         let state = State {
-            springs: row.springs.clone(),
-            counts: row.counts.clone(),
+            springs: &row.springs,
+            counts: &row.counts,
         };
         let mut table = HashMap::new();
         sum += compute_count(&mut table, state);
@@ -198,8 +198,8 @@ fn main() -> util::Result<()> {
     let mut sum = 0;
     for row in input.rows.into_iter().map(|r| unfold(&r)) {
         let state = State {
-            springs: row.springs,
-            counts: row.counts,
+            springs: &row.springs,
+            counts: &row.counts,
         };
         let mut table = HashMap::new();
         sum += compute_count(&mut table, state);
