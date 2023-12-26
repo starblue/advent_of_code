@@ -11,3 +11,4 @@ num = "0.4.0"
 lowdim = "0.7.0"
 util = { path = "../util" }
 pathfinding = "2.2.2"
+rand = "0.8.5"
