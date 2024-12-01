@@ -11,8 +11,12 @@ members = [
     "a2021",
     "a2022",
     "a2023",
+    "a2024",
     "util",
 ]
 
 [profile.dev]
 opt-level = 1
+
+[patch.crates-io]
+lowdim = { path = "../lowdim" }
