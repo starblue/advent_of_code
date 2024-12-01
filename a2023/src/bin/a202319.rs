@@ -103,7 +103,14 @@ fn condition(i: &str) -> IResult<&str, Condition> {
     let (i, category) = category(i)?;
     let (i, ordering) = ordering(i)?;
     let (i, value) = uint(i)?;
-    Ok((i, Condition { category, ordering, value }))
+    Ok((
+        i,
+        Condition {
+            category,
+            ordering,
+            value,
+        },
+    ))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -200,7 +207,12 @@ struct Part {
 }
 impl Part {
     fn satisfies(&self, condition: &Option<Condition>) -> bool {
-        if let Some(Condition { category, ordering, value }) = condition {
+        if let Some(Condition {
+            category,
+            ordering,
+            value,
+        }) = condition
+        {
             self[category].cmp(value) == *ordering
         } else {
             true
@@ -253,7 +265,11 @@ impl Input {
             workflow_names.push(workflow.name.clone());
             workflow_map.insert(workflow.name.clone(), workflow);
         }
-        Input { workflow_names, workflow_map, parts }
+        Input {
+            workflow_names,
+            workflow_map,
+            parts,
+        }
     }
     fn accepts(&self, part: &Part) -> util::Result<bool> {
         let mut workflow_name = Label::start();
@@ -271,7 +287,11 @@ impl Input {
         let workflow_name = Label::start();
         let workflow_pos = 0;
         let parts = PartRange::all();
-        let initial_state = State { parts, workflow_name, workflow_pos };
+        let initial_state = State {
+            parts,
+            workflow_name,
+            workflow_pos,
+        };
         let mut stack = vec![initial_state];
 
         let mut count = 0;
@@ -284,7 +304,11 @@ impl Input {
                         if let Action::Goto(name) = &rule.action {
                             let workflow_name = name.clone();
                             let workflow_pos = 0;
-                            stack.push(State { parts, workflow_name, workflow_pos })
+                            stack.push(State {
+                                parts,
+                                workflow_name,
+                                workflow_pos,
+                            })
                         } else if rule.action == Action::Accept {
                             count += parts.count();
                         } else {
@@ -295,7 +319,11 @@ impl Input {
                         // Handle the case that the condition is false.
                         let workflow_name = state.workflow_name;
                         let workflow_pos = state.workflow_pos + 1;
-                        stack.push(State { parts, workflow_name, workflow_pos })
+                        stack.push(State {
+                            parts,
+                            workflow_name,
+                            workflow_pos,
+                        })
                     }
                 } else {
                     // We fell off the end of the workflow.
@@ -386,7 +414,12 @@ impl PartRange {
             }
         }
 
-        if let Some(Condition { category, ordering, value }) = condition {
+        if let Some(Condition {
+            category,
+            ordering,
+            value,
+        }) = condition
+        {
             let (opt_range_t, opt_range_f) = split_range(&self[category], *ordering, *value);
             (
                 opt_range_t.map(|r| {

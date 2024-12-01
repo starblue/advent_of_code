@@ -78,7 +78,10 @@ impl ColorCode {
             c => return Err(util::runtime_error!("unknown direction code {}", c)),
         };
         let distance = i64::from(self.0 >> 4);
-        Ok(Instruction { direction, distance })
+        Ok(Instruction {
+            direction,
+            distance,
+        })
     }
 }
 
@@ -127,7 +130,13 @@ fn instruction(i: &str) -> IResult<&str, Instruction> {
     let (i, direction) = direction(i)?;
     let (i, _) = space1(i)?;
     let (i, distance) = uint(i)?;
-    Ok((i, Instruction { direction, distance }))
+    Ok((
+        i,
+        Instruction {
+            direction,
+            distance,
+        },
+    ))
 }
 
 fn color_code(i: &str) -> IResult<&str, ColorCode> {
@@ -142,7 +151,13 @@ fn item(i: &str) -> IResult<&str, Item> {
     let (i, _) = tag("(")(i)?;
     let (i, color_code) = color_code(i)?;
     let (i, _) = tag(")")(i)?;
-    Ok((i, Item { instruction, color_code }))
+    Ok((
+        i,
+        Item {
+            instruction,
+            color_code,
+        },
+    ))
 }
 
 fn input(i: &str) -> IResult<&str, Input> {
@@ -155,7 +170,11 @@ fn volume(instructions: &[Instruction]) -> i64 {
     let mut length = 0;
     let mut p1 = p2d(0, 0);
     let mut p0 = p2d(0, 0);
-    for &Instruction { distance, direction } in instructions {
+    for &Instruction {
+        distance,
+        direction,
+    } in instructions
+    {
         p1 += distance * direction.to_v2d();
 
         length += distance;

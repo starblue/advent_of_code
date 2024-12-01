@@ -46,7 +46,13 @@ fn component(i: &str) -> IResult<&str, Component<'_>> {
     let (i, name) = label(i)?;
     let (i, _) = tag(": ")(i)?;
     let (i, connected_names) = separated_list1(tag(" "), label)(i)?;
-    Ok((i, Component { name, connected_names }))
+    Ok((
+        i,
+        Component {
+            name,
+            connected_names,
+        },
+    ))
 }
 
 #[derive(Clone, Debug)]
@@ -109,7 +115,11 @@ impl Graph {
             assert_eq!(i, ni);
         }
         let supernode_count = node_names.len();
-        Graph { edges, node_disjoint_sets, supernode_count }
+        Graph {
+            edges,
+            node_disjoint_sets,
+            supernode_count,
+        }
     }
     /// Returns representatives for distinct supernodes.
     fn supernodes(&self) -> HashSet<usize> {
@@ -205,7 +215,11 @@ fn fast_cut<R: Rng>(g: &Graph, rng: &mut R) -> Cut {
                 .count();
             if edge_count < min_edge_count {
                 min_edge_count = edge_count;
-                min_cut = Cut { node_count0, node_count1, edge_count };
+                min_cut = Cut {
+                    node_count0,
+                    node_count1,
+                    edge_count,
+                };
             }
         }
         min_cut

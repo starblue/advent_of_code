@@ -155,7 +155,13 @@ fn main() -> util::Result<()> {
     }
     let lone_supports = supported_by
         .iter()
-        .filter_map(|support| if support.len() == 1 { support.iter().next() } else { None })
+        .filter_map(|support| {
+            if support.len() == 1 {
+                support.iter().next()
+            } else {
+                None
+            }
+        })
         .collect::<HashSet<_>>();
     let result1 = bricks.len() - lone_supports.len();
 
