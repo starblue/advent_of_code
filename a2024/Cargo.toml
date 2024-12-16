@@ -8,3 +8,4 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 lowdim = "0.7.2"
 nom = "7.0.0"
+pathfinding = "4.12.0"
