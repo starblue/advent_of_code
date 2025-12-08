@@ -5,12 +5,14 @@ use std::collections::HashSet;
 pub struct IntDisjointSets {
     reprs: Vec<usize>,
     sizes: Vec<usize>,
+    set_count: usize,
 }
 impl IntDisjointSets {
     pub fn new() -> Self {
         IntDisjointSets {
             reprs: Vec::new(),
             sizes: Vec::new(),
+            set_count: 0,
         }
     }
     /// Adds an element which is its own equivalence class and returns its id.
@@ -18,6 +20,7 @@ impl IntDisjointSets {
         let id = self.reprs.len();
         self.reprs.push(id);
         self.sizes.push(1);
+        self.set_count += 1;
         id
     }
     /// Returns the representative for the equivalence class of an element.
@@ -56,6 +59,7 @@ impl IntDisjointSets {
                 self.reprs[i_repr] = j;
                 self.sizes[j_repr] += i_size;
             }
+            self.set_count -= 1;
         }
     }
     // Return the size of a disjoint set.
@@ -71,6 +75,10 @@ impl IntDisjointSets {
             result.insert(r);
         }
         result
+    }
+    /// Returns the number of disjoint sets.
+    pub fn set_count(&self) -> usize {
+        self.set_count
     }
 }
 impl Default for IntDisjointSets {

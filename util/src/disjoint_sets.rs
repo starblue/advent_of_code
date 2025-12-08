@@ -61,6 +61,10 @@ where
             .map(|t| self.find(t))
             .collect::<HashSet<_>>()
     }
+    /// Returns the number of disjoint sets.
+    pub fn set_count(&self) -> usize {
+        self.disjoint_sets.set_count()
+    }
 }
 impl<T> Default for DisjointSets<T>
 where
